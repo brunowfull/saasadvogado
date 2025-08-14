@@ -1,0 +1,46 @@
+.sidebar {
+    flex: 0 0 250px; /* Fixed width sidebar */
+    background-color: #343a40;
+    color: white;
+    padding-top: 20px;
+    height: 100vh; /* Full viewport height */
+    overflow-y: auto; /* Enable scrolling for sidebar content */
+    position: sticky; /* Make sidebar sticky */
+    top: 0; /* Stick to the top */
+}
+.sidebar a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 10px 15px;
+}
+.sidebar a:hover {
+    background-color: #495057;
+}
+.sidebar .nav-link {
+    padding-left: 25px;
+}
+.main-content {
+    flex-grow: 1; /* Main content takes remaining space */
+    padding: 20px;
+    overflow-y: auto; /* Enable scrolling for main content */
+}
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -250px; /* Hide sidebar off-screen */
+        height: 100%;
+        z-index: 1050; /* Above other content */
+        transition: left 0.3s ease-in-out;
+    }
+    .sidebar.show {
+        left: 0; /* Show sidebar */
+    }
+    .main-content {
+        margin-left: 0; /* Reset margin for small screens */
+    }
+    body.sidebar-open {
+        overflow: hidden; /* Prevent scrolling when sidebar is open */
+    }
+}

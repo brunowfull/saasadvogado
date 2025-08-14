@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Advogados - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Advogados</h1>
+        <a href="{% url 'dashboard:lawyer_create' %}" class="btn btn-primary">Cadastrar Advogado</a>
+    </div>
+
+    <div class="d-flex justify-content-end mb-3">
+        <select class="form-select" style="width: 200px;">
+            <option selected>15 por página</option>
+            <option value="30">30 por página</option>
+            <option value="50">50 por página</option>
+            <option value="100">100 por página</option>
+        </select>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nº</th>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>OAB</th>
+                            <th>Data do Cadastro</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lawyer in lawyers %}
+                        <tr>
+                            <td>{{ forloop.counter|stringformat:"03d" }}</td>
+                            <td>{{ lawyer.name }}</td>
+                            <td>{{ lawyer.cpf }}</td>
+                            <td>{{ lawyer.oab_number }}</td>
+                            <td>{{ lawyer.created_at|date:"d/m/Y" }}</td>
+                            <td>
+                                <a href="{% url 'dashboard:lawyer_edit' lawyer.id %}" class="btn btn-sm btn-warning">✎</a>
+                                <a href="{% url 'dashboard:lawyer_delete' lawyer.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este advogado?');">🗑</a>
+                                <a href="{% url 'dashboard:lawyer_detail' lawyer.id %}" class="btn btn-sm btn-info">ℹ</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

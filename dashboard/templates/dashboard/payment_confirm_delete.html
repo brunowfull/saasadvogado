@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão de Pagamento - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <h1 class="h2">Confirmar Exclusão de Pagamento</h1>
+    <p>Você tem certeza que deseja excluir o pagamento de <strong>R$ {{ payment.amount }}</strong> para o caso <strong>{{ payment.case.case_name }}</strong> do cliente <strong>{{ client.name }}</strong>?</p>
+    <form method="post" action="{% url 'dashboard:payment_delete' client.pk payment.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+        <a href="{% url 'dashboard:client_financial' client.pk %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endblock %}

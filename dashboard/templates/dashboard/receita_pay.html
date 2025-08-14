@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Baixar Receita - LawFirm Finance{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Baixar Receita</h1>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Dados da Receita</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <input type="text" class="form-control-plaintext" value="{{ receita.descricao }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Cliente</label>
+                        <input type="text" class="form-control-plaintext" value="{{ receita.cliente.nome }}" readonly>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Valor Total</label>
+                        <input type="text" class="form-control-plaintext" value="R$ {{ receita.valor_total|floatformat:2 }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <input type="text" class="form-control-plaintext" value="{{ receita.tipo.nome }}" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Dados do Pagamento</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.data_recebimento.id_for_label }}" class="form-label">Data de Pagamento</label>
+                        {{ form.data_recebimento }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.forma_pagamento.id_for_label }}" class="form-label">Forma de Pagamento</label>
+                        {{ form.forma_pagamento }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.banco.id_for_label }}" class="form-label">Banco</label>
+                        {{ form.banco }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.parcial.id_for_label }}" class="form-label">Parcial</label>
+                        {{ form.parcial }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.desconto.id_for_label }}" class="form-label">Desconto</label>
+                        {{ form.desconto }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.valor_recebido.id_for_label }}" class="form-label">Valor Recebido</label>
+                        {{ form.valor_recebido }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'dashboard:receitas' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-success">Baixar</button>
+    </div>
+</form>
+{% endblock %}

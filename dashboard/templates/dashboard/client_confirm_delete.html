@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão de Cliente - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <h1 class="h2">Confirmar Exclusão de Cliente</h1>
+    <p>Você tem certeza que deseja excluir o cliente <strong>{{ cliente.nome }}</strong>?</p>
+    <p class="text-warning">Atenção: Esta ação irá desativar o cliente. Os dados não serão permanentemente excluídos.</p>
+    
+    <form method="post" action="{% url 'dashboard:client_delete' cliente.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+        <a href="{% url 'dashboard:clients' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endblock %}

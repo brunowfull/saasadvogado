@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ form_title }} - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <h1 class="h2">{{ form_title }}</h1>
+
+    <form method="post" action="">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.nome.id_for_label }}" class="form-label">{{ form.nome.label }}</label>
+                    {{ form.nome }}
+                    {% if form.nome.help_text %}
+                        <div class="form-text">{{ form.nome.help_text }}</div>
+                    {% endif %}
+                    {% if form.nome.errors %}
+                        <div class="text-danger">{{ form.nome.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.nome_mae.id_for_label }}" class="form-label">{{ form.nome_mae.label }}</label>
+                    {{ form.nome_mae }}
+                    {% if form.nome_mae.help_text %}
+                        <div class="form-text">{{ form.nome_mae.help_text }}</div>
+                    {% endif %}
+                    {% if form.nome_mae.errors %}
+                        <div class="text-danger">{{ form.nome_mae.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.cpf_cnpj.id_for_label }}" class="form-label">{{ form.cpf_cnpj.label }}</label>
+                    {{ form.cpf_cnpj }}
+                    {% if form.cpf_cnpj.help_text %}
+                        <div class="form-text">{{ form.cpf_cnpj.help_text }}</div>
+                    {% endif %}
+                    {% if form.cpf_cnpj.errors %}
+                        <div class="text-danger">{{ form.cpf_cnpj.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.help_text %}
+                        <div class="form-text">{{ form.email.help_text }}</div>
+                    {% endif %}
+                    {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.telefone.id_for_label }}" class="form-label">{{ form.telefone.label }}</label>
+                    {{ form.telefone }}
+                    {% if form.telefone.help_text %}
+                        <div class="form-text">{{ form.telefone.help_text }}</div>
+                    {% endif %}
+                    {% if form.telefone.errors %}
+                        <div class="text-danger">{{ form.telefone.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.endereco.id_for_label }}" class="form-label">{{ form.endereco.label }}</label>
+                    {{ form.endereco }}
+                    {% if form.endereco.help_text %}
+                        <div class="form-text">{{ form.endereco.help_text }}</div>
+                    {% endif %}
+                    {% if form.endereco.errors %}
+                        <div class="text-danger">{{ form.endereco.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.cidade.id_for_label }}" class="form-label">{{ form.cidade.label }}</label>
+                    {{ form.cidade }}
+                    {% if form.cidade.help_text %}
+                        <div class="form-text">{{ form.cidade.help_text }}</div>
+                    {% endif %}
+                    {% if form.cidade.errors %}
+                        <div class="text-danger">{{ form.cidade.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.estado.id_for_label }}" class="form-label">{{ form.estado.label }}</label>
+                    {{ form.estado }}
+                    {% if form.estado.help_text %}
+                        <div class="form-text">{{ form.estado.help_text }}</div>
+                    {% endif %}
+                    {% if form.estado.errors %}
+                        <div class="text-danger">{{ form.estado.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <label for="{{ form.ativo.id_for_label }}" class="form-check-label">{{ form.ativo.label }}</label>
+                    {{ form.ativo }}
+                    {% if form.ativo.help_text %}
+                        <div class="form-text">{{ form.ativo.help_text }}</div>
+                    {% endif %}
+                    {% if form.ativo.errors %}
+                        <div class="text-danger">{{ form.ativo.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                {% if form.instance.pk %}
+                <div class="mb-3">
+                    <label class="form-label">Área do Cliente</label>
+                    <div>
+                        {% if form.instance.area_cliente_ativa %}
+                            <span class="badge bg-success">Área ativa</span>
+                            <a href="{% url 'dashboard:client_activate_area' form.instance.pk %}" class="btn btn-sm btn-outline-primary" onclick="event.preventDefault(); if(confirm('Tem certeza que deseja gerar uma nova senha para a Área do Cliente?')) {document.getElementById('activate-area-form-{{ form.instance.pk }}').submit();}">Gerar Nova Senha</a>
+                        {% else %}
+                            <a href="{% url 'dashboard:client_activate_area' form.instance.pk %}" class="btn btn-sm btn-outline-primary" onclick="event.preventDefault(); if(confirm('Tem certeza que deseja ativar a Área do Cliente para este cliente?')) {document.getElementById('activate-area-form-{{ form.instance.pk }}').submit();}">Ativar Área</a>
+                        {% endif %}
+                        <form id="activate-area-form-{{ form.instance.pk }}" method="post" action="{% url 'dashboard:client_activate_area' form.instance.pk %}" style="display: none;">
+                            {% csrf_token %}
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if button_text == 'Fechar' %}
+            <a href="{% url 'dashboard:clients' %}" class="btn btn-secondary">{{ button_text }}</a>
+        {% else %}
+            <button type="submit" class="btn btn-primary">{{ button_text }}</button>
+            <a href="{% url 'dashboard:clients' %}" class="btn btn-secondary">Cancelar</a>
+        {% endif %}
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function ativarAreaCliente(clienteId) {
+    if (confirm('Tem certeza que deseja ativar a Área do Cliente para este cliente?')) {
+        // In a real implementation, this would make an AJAX call to activate the client area
+        alert('Área do Cliente ativada com sucesso! A senha será gerada automaticamente.');
+        location.reload();
+    }
+}
+
+function gerarSenha(clienteId) {
+    if (confirm('Tem certeza que deseja gerar uma nova senha para a Área do Cliente?')) {
+        // In a real implementation, this would make an AJAX call to generate a new password
+        alert('Nova senha gerada com sucesso! A senha será enviada ao cliente por e-mail.');
+        location.reload();
+    }
+}
+</script>
+{% endblock %}

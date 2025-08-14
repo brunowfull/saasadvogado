@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Financeiro do Cliente - LawFirm Finance{% endblock %}
+
+{% block custom_css %}
+<style>
+    .table thead th {
+        background-color: #343a40;
+        color: white;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #e9ecef;
+    }
+    .financial-table-container {
+        max-height: 600px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+    }
+    .progress-bar-container {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    .payment-table {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <h1 class="h2">Financeiro do Cliente: {{ cliente.nome }}</h1>
+
+    <div class="financial-table-container mt-4">
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th>Contrato</th>
+                    <th>Valor Total</th>
+                    <th>Valor Pago</th>
+                    <th>Saldo Devedor</th>
+                    <th>Status</th>
+                    <th>Progresso</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for receita in receitas %}
+                <tr data-bs-toggle="collapse" data-bs-target="#receita-details-{{ receita.id }}" aria-expanded="false" aria-controls="receita-details-{{ receita.id }}" style="cursor: pointer;">
+                    <td>{{ receita.descricao }}</td>
+                    <td>R$ {{ receita.valor_total|intcomma }}</td>
+                    <td>R$ {{ receita.valor_recebido|intcomma|default:"0,00" }}</td>
+                    <td>R$ {{ receita.saldo_devedor|intcomma|default:"0,00" }}</td>
+                    <td><span class="badge bg-{% if receita.pago %}success{% elif receita.vencida %}danger{% else %}warning{% endif %}">
+                        {% if receita.pago %}Pago{% elif receita.vencida %}Vencido{% else %}Pendente{% endif %}
+                    </span></td>
+                    <td>
+                        <div class="progress progress-bar-container">
+                            <div class="progress-bar" role="progressbar"
+                                 style="width: {{ receita.percentual_pago }}%"
+                                 aria-valuenow="{{ receita.percentual_pago }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                {{ receita.percentual_pago }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#add-payment-{{ receita.id }}" aria-expanded="false" aria-controls="add-payment-{{ receita.id }}">
+                            Adicionar Pagamento
+                        </button>
+                    </td>
+                </tr>
+                <tr class="collapse" id="receita-details-{{ receita.id }}">
+                    <td colspan="7">
+                        <div class="p-3 bg-light border rounded">
+                            <h6>Parcelas:</h6>
+                            <div class="payment-table">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Valor</th>
+                                            <th>Data de Pagamento</th>
+                                            <th>Data de Vencimento</th>
+                                            <th>Forma de Pagamento</th>
+                                            <th>Status</th>
+                                            <th>Descrição</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>R$ {{ receita.valor_total|intcomma }}</td>
+                                            <td>{{ receita.data_recebimento|date:"d/m/Y"|default:"-" }}</td>
+                                            <td>{{ receita.data_vencimento|date:"d/m/Y"|default:"-" }}</td>
+                                            <td>{{ receita.forma_pagamento.nome|default:"-" }}</td>
+                                            <td><span class="badge bg-{% if receita.pago %}success{% else %}warning{% endif %}">
+                                                {% if receita.pago %}Pago{% else %}Pendente{% endif %}
+                                            </span></td>
+                                            <td>{{ receita.descricao|default:"-" }}</td>
+                                            <td>
+                                                <a href="{% url 'dashboard:payment_edit' cliente.pk receita.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                                                <form action="{% url 'dashboard:payment_delete' cliente.pk receita.pk %}" method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este pagamento?');">Excluir</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="collapse" id="add-payment-{{ receita.id }}">
+                    <td colspan="7">
+                        <div class="p-3 bg-light border rounded mt-2">
+                            <h6>Adicionar Novo Pagamento para {{ receita.descricao }}:</h6>
+                            <form method="post" action="{% url 'dashboard:client_financial' cliente.pk %}">
+                                {% csrf_token %}
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label for="valor_total-{{ receita.id }}" class="form-label">Valor Total</label>
+                                        <input type="number" step="0.01" class="form-control" id="valor_total-{{ receita.id }}" name="valor_total" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="data_pagamento-{{ receita.id }}" class="form-label">Data de Pagamento</label>
+                                        <input type="date" class="form-control" id="data_pagamento-{{ receita.id }}" name="data_pagamento">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="data_vencimento-{{ receita.id }}" class="form-label">Data de Vencimento</label>
+                                        <input type="date" class="form-control" id="data_vencimento-{{ receita.id }}" name="data_vencimento">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="forma_pagamento-{{ receita.id }}" class="form-label">Forma de Pagamento</label>
+                                        <select class="form-select" id="forma_pagamento-{{ receita.id }}" name="forma_pagamento">
+                                            <option value="">Selecione...</option>
+                                            {% for forma in formas_pagamento %}
+                                                <option value="{{ forma.id }}">{{ forma.nome }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="descricao-{{ receita.id }}" class="form-label">Descrição</label>
+                                        <textarea class="form-control" id="descricao-{{ receita.id }}" name="descricao" rows="1"></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-success">Salvar Pagamento</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#add-payment-{{ receita.id }}">Cancelar</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">Nenhum contrato registrado para este cliente.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{% url 'dashboard:clients' %}" class="btn btn-secondary mt-3">Voltar</a>
+{% endblock %}

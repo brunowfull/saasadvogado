@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Bem-vindo ao LawFirm Finance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="mt-5">Bem-vindo ao LawFirm Finance</h1>
+            <p class="lead">O seu sistema de gestão financeira para escritórios de advocacia.</p>
+            <hr class="my-4">
+            <p>Use o menu lateral para navegar pelas funcionalidades do sistema.</p>
+            <a class="btn btn-primary btn-lg" href="{% url 'dashboard:home' %}" role="button">Ir para o Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

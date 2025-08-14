@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastrar Receita - LawFirm Finance{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Cadastrar Receita</h1>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Dados da Receita</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição</label>
+                        {{ form.descricao }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.valor_total.id_for_label }}" class="form-label">Valor Total</label>
+                        {{ form.valor_total }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.data_emissao.id_for_label }}" class="form-label">Data de Emissão</label>
+                        {{ form.data_emissao }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo de Receita</label>
+                        {{ form.tipo }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.cliente.id_for_label }}" class="form-label">Cliente</label>
+                        {{ form.cliente }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.advogado.id_for_label }}" class="form-label">Advogado</label>
+                        {{ form.advogado }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.processo.id_for_label }}" class="form-label">Processo</label>
+                        {{ form.processo }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.tipo_demanda.id_for_label }}" class="form-label">Tipo de Demanda</label>
+                        {{ form.tipo_demanda }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="{{ form.observacoes.id_for_label }}" class="form-label">Observações</label>
+                        {{ form.observacoes }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Condição de Pagamento</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.condicao_pagamento.id_for_label }}" class="form-label">Condição de Pagamento</label>
+                        {{ form.condicao_pagamento }}
+                    </div>
+                </div>
+            </div>
+            
+            <div id="parcelado-fields" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.numero_parcelas.id_for_label }}" class="form-label">Número de Parcelas</label>
+                            {{ form.numero_parcelas }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.prazo.id_for_label }}" class="form-label">Prazo</label>
+                            {{ form.prazo }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="entrada-parcelado-fields" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.numero_parcelas.id_for_label }}" class="form-label">Número de Parcelas</label>
+                            {{ form.numero_parcelas }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.prazo.id_for_label }}" class="form-label">Prazo</label>
+                            {{ form.prazo }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Rateio</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.rateio_ativo }}
+                            <label for="{{ form.rateio_ativo.id_for_label }}" class="form-check-label">Rateio Ativo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="rateio-fields" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.rateio_advogado_1.id_for_label }}" class="form-label">Advogado 1</label>
+                            {{ form.rateio_advogado_1 }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.rateio_percentual_1.id_for_label }}" class="form-label">Percentual Advogado 1</label>
+                            {{ form.rateio_percentual_1 }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.rateio_advogado_2.id_for_label }}" class="form-label">Advogado 2</label>
+                            {{ form.rateio_advogado_2 }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.rateio_percentual_2.id_for_label }}" class="form-label">Percentual Advogado 2</label>
+                            {{ form.rateio_percentual_2 }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.rateio_advogado_3.id_for_label }}" class="form-label">Advogado 3</label>
+                            {{ form.rateio_advogado_3 }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.rateio_percentual_3.id_for_label }}" class="form-label">Percentual Advogado 3</label>
+                            {{ form.rateio_percentual_3 }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'dashboard:receitas' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const condicaoPagamento = document.getElementById('{{ form.condicao_pagamento.id_for_label }}');
+    const parceladoFields = document.getElementById('parcelado-fields');
+    const entradaParceladoFields = document.getElementById('entrada-parcelado-fields');
+    const rateioAtivo = document.getElementById('{{ form.rateio_ativo.id_for_label }}');
+    const rateioFields = document.getElementById('rateio-fields');
+    
+    function toggleFields() {
+        const value = condicaoPagamento.value;
+        parceladoFields.style.display = value === 'parcelado' ? 'block' : 'none';
+        entradaParceladoFields.style.display = value === 'entrada_parcelado' ? 'block' : 'none';
+    }
+    
+    function toggleRateio() {
+        rateioFields.style.display = rateioAtivo.checked ? 'block' : 'none';
+    }
+    
+    condicaoPagamento.addEventListener('change', toggleFields);
+    rateioAtivo.addEventListener('change', toggleRateio);
+    
+    // Initialize on page load
+    toggleFields();
+    toggleRateio();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Receitas - LawFirm Finance{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Receitas</h1>
+    <a href="{% url 'dashboard:receita_create' %}" class="btn btn-primary">Cadastrar Receita</a>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label for="data_vencimento" class="form-label">Data</label>
+                <select name="data_vencimento" id="data_vencimento" class="form-select">
+                    <option value="">Sem filtro</option>
+                    <option value="vencimento">Vencimento</option>
+                    <option value="pagamento">Pagamento</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="cliente" class="form-label">Cliente</label>
+                <select name="cliente" id="cliente" class="form-select">
+                    <option value="">Sem filtro</option>
+                    {% for cliente in clientes %}
+                        <option value="{{ cliente.id }}">{{ cliente.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="pago" class="form-label">Pago</label>
+                <select name="pago" id="pago" class="form-select">
+                    <option value="">Sem filtro</option>
+                    <option value="1">Sim</option>
+                    <option value="0">Não</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="pendente" class="form-label">Pendente</label>
+                <select name="pendente" id="pendente" class="form-select">
+                    <option value="">Sem filtro</option>
+                    <option value="1">Sim</option>
+                    <option value="0">Não</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="atrasado" class="form-label">Atrasado</label>
+                <select name="atrasado" id="atrasado" class="form-select">
+                    <option value="">Sem filtro</option>
+                    <option value="1">Sim</option>
+                    <option value="0">Não</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="tipo" class="form-label">Tipo</label>
+                <select name="tipo" id="tipo" class="form-select">
+                    <option value="">Sem filtro</option>
+                    {% for tipo in tipos_receita %}
+                        <option value="{{ tipo.id }}">{{ tipo.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-12 d-flex justify-content-end align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+                <a href="{% url 'dashboard:receitas' %}" class="btn btn-secondary">Limpar</a>
+                <button type="button" class="btn btn-success ms-2">Exportar PDF</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Botões de ação rápidos -->
+<div class="d-flex justify-content-between mb-3">
+    <div>
+        <a href="#" class="btn btn-outline-secondary">7 dias</a>
+        <a href="#" class="btn btn-outline-secondary">30 dias</a>
+        <a href="#" class="btn btn-outline-secondary">Este mês</a>
+        <a href="#" class="btn btn-outline-secondary">Este ano</a>
+        <a href="#" class="btn btn-outline-secondary">Sem filtro</a>
+    </div>
+</div>
+
+<!-- Tabela de receitas -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Parcela</th>
+                        <th>Valor</th>
+                        <th>Cliente</th>
+                        <th>Tipo</th>
+                        <th>Vencimento</th>
+                        <th>Pagamento</th>
+                        <th>Status</th>
+                        <th>Recebedor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for receita in receitas %}
+                    <tr>
+                        <td>{{ forloop.counter|stringformat:"03d" }}</td>
+                        <td>R$ {{ receita.valor_total|floatformat:2 }}</td>
+                        <td>{{ receita.cliente.nome }}</td>
+                        <td>{{ receita.tipo.nome }}</td>
+                        <td>{{ receita.data_vencimento|date:"d/m/Y" }}</td>
+                        <td>{{ receita.data_recebimento|date:"d/m/Y"|default:"-" }}</td>
+                        <td>
+                            {% if receita.pago %}
+                                <span class="badge bg-success">Pago</span>
+                            {% elif receita.parcial %}
+                                <span class="badge bg-warning">Parcial</span>
+                            {% else %}
+                                <span class="badge bg-danger">Pendente</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ receita.advogado.get_full_name|default:"-" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'dashboard:receita_edit' receita.id %}" class="btn btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'dashboard:receita_detail' receita.id %}" class="btn btn-outline-info" title="Detalhes">
+                                    <i class="fas fa-exclamation"></i>
+                                </a>
+                                <a href="{% url 'dashboard:receita_pay' receita.id %}" class="btn btn-outline-success" title="Baixar">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </a>
+                                <a href="{% url 'dashboard:receita_delete' receita.id %}" class="btn btn-outline-danger" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center">Nenhuma receita encontrada</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginação -->
+        {% if page_obj %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Primeira</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Anterior</a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Próxima</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Última</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

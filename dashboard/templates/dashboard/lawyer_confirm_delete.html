@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão de Advogado - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Confirmar Exclusão de Advogado</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <p class="mb-4">Você tem certeza que deseja excluir o advogado <strong>{{ advogado.get_full_name|default:advogado.username }}</strong>?</p>
+            <form method="post" action="{% url 'dashboard:lawyer_delete' advogado.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+                <a href="{% url 'dashboard:lawyers' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+{% endblock %}

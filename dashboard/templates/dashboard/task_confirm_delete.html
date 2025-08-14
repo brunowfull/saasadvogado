@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão de Tarefa - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <h1 class="h2">Confirmar Exclusão de Tarefa</h1>
+    <p>Você tem certeza que deseja excluir a tarefa <strong>{{ task.titulo }}</strong>?</p>
+    
+    <form method="post" action="{% url 'dashboard:task_delete' task.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+        <a href="{% url 'dashboard:task_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endblock %}

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Louzada & Laurindo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2d5a87;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .sidebar-brand h4 {
+            margin: 0;
+            font-weight: 600;
+            color: white;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+            border-left-color: #fff;
+            transform: translateX(5px);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .page-header p {
+            margin: 0.5rem 0 0 0;
+            color: #6c757d;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-card.today {
+            border-left-color: var(--primary-color);
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8eaff 100%);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--success-color);
+            background: linear-gradient(135deg, #f0fff4 0%, #dcf4e4 100%);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--danger-color);
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning-color);
+            background: linear-gradient(135deg, #fffbf0 0%, #fef5e7 100%);
+        }
+
+        .stat-card.info {
+            border-left-color: var(--info-color);
+            background: linear-gradient(135deg, #f0fdff 0%, #e0f7fa 100%);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .calendar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.5rem !important;
+            font-weight: 600 !important;
+            color: var(--primary-color) !important;
+        }
+
+        .fc-button-primary {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        .fc-button-primary:hover {
+            background-color: var(--secondary-color) !important;
+            border-color: var(--secondary-color) !important;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .mobile-toggle {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: block;
+            }
+        }
+
+        .recent-activities {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1rem;
+        }
+
+        .activity-content h6 {
+            margin: 0 0 0.25rem 0;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .activity-content p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .quick-action-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            text-decoration: none;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quick-action-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+
+        .quick-action-btn i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <h4><i class="fas fa-balance-scale"></i> Louzada & Laurindo</h4>
+            <small>Gestão Advocacia</small>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Principal</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="{% url 'dashboard:home' %}" class="nav-link active">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Cadastros</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="{% url 'dashboard:clients' %}" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'dashboard:lawyers' %}" class="nav-link">
+                            <i class="fas fa-user-tie"></i>
+                            Advogados
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-truck"></i>
+                            Fornecedores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-tags"></i>
+                            Tipos de Receita
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-receipt"></i>
+                            Tipos de Despesas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-folder"></i>
+                            Tipos de Demanda
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-credit-card"></i>
+                            Formas Pagamento
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-clock"></i>
+                            Prazos Pagamento
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-university"></i>
+                            Bancos
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Financeiro</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-arrow-up text-success"></i>
+                            Receitas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-arrow-down text-danger"></i>
+                            Despesas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            Gráficos
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Operacional</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-tasks"></i>
+                            Tarefas
+                        </a>
+                    </li>
+                   <li class="nav-item">
+                       <a href="{% url 'dashboard:audiencia_create' %}" class="nav-link">
+                           <i class="fas fa-gavel"></i>
+                           Audiências
+                       </a>
+                   </li>
+                   <li class="nav-item">
+                       <a href="#" class="nav-link">
+                           <i class="fas fa-newspaper"></i>
+                           Publicações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-folder-open"></i>
+                            Processos
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Sessão</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="{% url 'logout' %}" class="nav-link">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sair
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Dashboard</h1>
+            <p>Visão geral das atividades e métricas do escritório</p>
+            <small class="text-muted">Último acesso: <span id="currentDateTime"></span></small>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="quick-actions">
+            <a href="{% url 'dashboard:client_create' %}" class="quick-action-btn">
+                <i class="fas fa-user-plus"></i>
+                <span>Novo Cliente</span>
+            </a>
+            <a href="{% url 'dashboard:task_create' %}" class="quick-action-btn">
+                <i class="fas fa-plus"></i>
+                <span>Nova Tarefa</span>
+            </a>
+           <a href="{% url 'dashboard:audiencia_create' %}" class="quick-action-btn">
+               <i class="fas fa-calendar-plus"></i>
+               <span>Agendar Audiência</span>
+           </a>
+           <a href="#" class="quick-action-btn" onclick="openModal('receitaModal')">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Lançar Receita</span>
+            </a>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card today">
+                <div class="stat-header">
+                    <div class="stat-title">Hoje</div>
+                    <div class="stat-icon" style="background: rgba(26, 54, 93, 0.1); color: var(--primary-color);">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="todayDate"></div>
+                <div class="stat-change">
+                    <i class="fas fa-clock"></i>
+                    <span id="currentTime"></span>
+                </div>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="stat-header">
+                    <div class="stat-title">Tarefas Pendentes</div>
+                    <div class="stat-icon" style="background: rgba(255, 193, 7, 0.1); color: var(--warning-color);">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ tarefas_pendentes }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-up" style="color: var(--danger-color);"></i>
+                    <span>+3 desde ontem</span>
+                </div>
+            </div>
+
+            <div class="stat-card info">
+                <div class="stat-header">
+                    <div class="stat-title">Audiências Pendentes</div>
+                    <div class="stat-icon" style="background: rgba(23, 162, 184, 0.1); color: var(--info-color);">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ audiencias_pendentes }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-calendar"></i>
+                    <span>Próxima: 15/08</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">Publicações</div>
+                    <div class="stat-icon" style="background: rgba(108, 117, 125, 0.1); color: #6c757d;">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ publicacoes_nao_lidas }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-down" style="color: var(--success-color);"></i>
+                    <span>-2 desde ontem</span>
+                </div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-header">
+                    <div class="stat-title">Receitas do Mês</div>
+                    <div class="stat-icon" style="background: rgba(40, 167, 69, 0.1); color: var(--success-color);">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                </div>
+                <div class="stat-value">R$ {{ receitas_mes|floatformat:2 }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    <span>+18% vs mês anterior</span>
+                </div>
+            </div>
+
+            <div class="stat-card danger">
+                <div class="stat-header">
+                    <div class="stat-title">Despesas do Mês</div>
+                    <div class="stat-icon" style="background: rgba(220, 53, 69, 0.1); color: var(--danger-color);">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                </div>
+                <div class="stat-value">R$ {{ despesas_mes|floatformat:2 }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-down" style="color: var(--success-color);"></i>
+                    <span>-5% vs mês anterior</span>
+                </div>
+            </div>
+
+            <div class="stat-card info">
+                <div class="stat-header">
+                    <div class="stat-title">Saldo do Mês</div>
+                    <div class="stat-icon" style="background: rgba(23, 162, 184, 0.1); color: var(--info-color);">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                </div>
+                <div class="stat-value">R$ {{ saldo_mes|floatformat:2 }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    <span>+32% vs mês anterior</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">Clientes Ativos</div>
+                    <div class="stat-icon" style="background: rgba(108, 117, 125, 0.1); color: #6c757d;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ total_clientes }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-user-plus" style="color: var(--success-color);"></i>
+                    <span>+12 este mês</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <h3 class="calendar-title">
+                    <i class="fas fa-calendar-alt"></i>
+                    Agenda
+                </h3>
+                <button class="btn btn-primary" onclick="openModal('taskModal')">
+                    <i class="fas fa-plus"></i>
+                    Nova Tarefa
+                </button>
+            </div>
+            <div id="calendar"></div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="recent-activities">
+            <h3 style="margin-bottom: 1.5rem; color: var(--primary-color);">
+                <i class="fas fa-history"></i>
+                Atividades Recentes
+            </h3>
+            
+            {% for activity in atividades_recentes %}
+            <div class="activity-item">
+                <div class="activity-icon" style="background: rgba(40, 167, 69, 0.1); color: var(--success-color);">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="activity-content">
+                    <h6>{{ activity.get_tipo_display }}</h6>
+                    <p>{{ activity.descricao }} • há {{ activity.data_criacao|timesince }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/pt-br.js"></script>
+    <script>
+        // Initialize calendar
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                height: 600,
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                },
+                events: '/dashboard/calendar_events/',
+                dateClick: function(info) {
+                    openModal('taskModal');
+                }
+            });
+            calendar.render();
+
+            // Update date and time
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+        });
+
+        function updateDateTime() {
+            const now = new Date();
+            const today = now.toLocaleDateString('pt-BR');
+            const time = now.toLocaleTimeString('pt-BR');
+            const dateTime = now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR');
+            
+            document.getElementById('todayDate').textContent = today;
+            document.getElementById('currentTime').textContent = time;
+            document.getElementById('currentDateTime').textContent = dateTime;
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        function openModal(modalType) {
+            alert(`Modal ${modalType} seria aberto aqui. Funcionalidade a ser implementada.`);
+        }
+
+        // Add click event to sidebar links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

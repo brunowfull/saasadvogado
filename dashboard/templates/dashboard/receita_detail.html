@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes da Receita - LawFirm Finance{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Detalhes da Receita</h1>
+    <a href="{% url 'dashboard:receitas' %}" class="btn btn-secondary">Voltar</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Informações Gerais</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Descrição</label>
+                    <p class="form-control-plaintext">{{ receita.descricao }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Valor Total</label>
+                    <p class="form-control-plaintext">R$ {{ receita.valor_total|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Data de Emissão</label>
+                    <p class="form-control-plaintext">{{ receita.data_emissao|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tipo de Receita</label>
+                    <p class="form-control-plaintext">{{ receita.tipo.nome }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Cliente</label>
+                    <p class="form-control-plaintext">{{ receita.cliente.nome }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Advogado</label>
+                    <p class="form-control-plaintext">{{ receita.advogado.get_full_name|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Processo</label>
+                    <p class="form-control-plaintext">{{ receita.processo.numero|default:"-" }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tipo de Demanda</label>
+                    <p class="form-control-plaintext">{{ receita.tipo_demanda.nome|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Condição de Pagamento</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Condição de Pagamento</label>
+                    <p class="form-control-plaintext">{{ receita.get_condicao_pagamento_display }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Número de Parcelas</label>
+                    <p class="form-control-plaintext">{{ receita.numero_parcelas|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Prazo</label>
+                    <p class="form-control-plaintext">{{ receita.prazo.nome|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Dados Financeiros</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Data de Vencimento</label>
+                    <p class="form-control-plaintext">{{ receita.data_vencimento|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Data de Recebimento</label>
+                    <p class="form-control-plaintext">{{ receita.data_recebimento|date:"d/m/Y"|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Forma de Pagamento</label>
+                    <p class="form-control-plaintext">{{ receita.forma_pagamento.nome|default:"-" }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Banco</label>
+                    <p class="form-control-plaintext">{{ receita.banco.nome|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Status</label>
+                    <p class="form-control-plaintext">
+                        {% if receita.pago %}
+                            <span class="badge bg-success">Pago</span>
+                        {% elif receita.parcial %}
+                            <span class="badge bg-warning">Parcial</span>
+                        {% else %}
+                            <span class="badge bg-danger">Pendente</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Desconto</label>
+                    <p class="form-control-plaintext">R$ {{ receita.desconto|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Valor Recebido</label>
+                    <p class="form-control-plaintext">R$ {{ receita.valor_recebido|floatformat:2|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if receita.rateio_ativo %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Rateio</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Advogado 1</label>
+                    <p class="form-control-plaintext">{{ receita.rateio_advogado_1.get_full_name|default:"-" }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Percentual Advogado 1</label>
+                    <p class="form-control-plaintext">{{ receita.rateio_percentual_1|floatformat:2 }}%</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Advogado 2</label>
+                    <p class="form-control-plaintext">{{ receita.rateio_advogado_2.get_full_name|default:"-" }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Percentual Advogado 2</label>
+                    <p class="form-control-plaintext">{{ receita.rateio_percentual_2|floatformat:2 }}%</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Advogado 3</label>
+                    <p class="form-control-plaintext">{{ receita.rateio_advogado_3.get_full_name|default:"-" }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Percentual Advogado 3</label>
+                    <p class="form-control-plaintext">{{ receita.rateio_percentual_3|floatformat:2 }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Observações</h5>
+    </div>
+    <div class="card-body">
+        <p class="form-control-plaintext">{{ receita.observacoes|default:"Nenhuma observação" }}</p>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <a href="{% url 'dashboard:receitas' %}" class="btn btn-secondary">Voltar</a>
+    <div>
+        <a href="{% url 'dashboard:receita_edit' receita.id %}" class="btn btn-primary">Editar</a>
+        <a href="{% url 'dashboard:receita_pay' receita.id %}" class="btn btn-success">Baixar</a>
+        <a href="{% url 'dashboard:receita_delete' receita.id %}" class="btn btn-danger">Excluir</a>
+    </div>
+</div>
+{% endblock %}

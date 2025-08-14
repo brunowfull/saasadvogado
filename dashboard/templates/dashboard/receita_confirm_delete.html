@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão de Receita - LawFirm Finance{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Confirmar Exclusão de Receita</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p class="mb-4">Você tem certeza que deseja excluir a receita <strong>{{ receita.descricao }}</strong> no valor de <strong>R$ {{ receita.valor_total|floatformat:2 }}</strong>?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+            <a href="{% url 'dashboard:receitas' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

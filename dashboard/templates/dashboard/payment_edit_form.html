@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Editar Pagamento - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <h1 class="h2">Editar Pagamento para {{ client.name }} (Caso: {{ financial_case.case_name }})</h1>
+
+    <form method="post" action="{% url 'dashboard:payment_edit' client.pk payment.pk %}">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="amount" class="form-label">Valor</label>
+                <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="{{ payment.amount|floatformat:2 }}" required>
+            </div>
+            <div class="col-md-4">
+                <label for="payment_date" class="form-label">Data de Pagamento</label>
+                <input type="date" class="form-control" id="payment_date" name="payment_date" value="{{ payment.payment_date|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-4">
+                <label for="due_date" class="form-label">Data de Vencimento</label>
+                <input type="date" class="form-control" id="due_date" name="due_date" value="{{ payment.due_date|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-4">
+                <label for="payment_method" class="form-label">Forma de Pagamento</label>
+                <select class="form-select" id="payment_method" name="payment_method">
+                    <option value="">Selecione...</option>
+                    {% for choice_value, choice_label in PAYMENT_METHOD_CHOICES %}
+                        <option value="{{ choice_value }}" {% if payment.payment_method == choice_value %}selected{% endif %}>{{ choice_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status" required>
+                    {% for choice_value, choice_label in PAYMENT_STATUS_CHOICES %}
+                        <option value="{{ choice_value }}" {% if payment.status == choice_value %}selected{% endif %}>{{ choice_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-12">
+                <label for="description" class="form-label">Descrição</label>
+                <textarea class="form-control" id="description" name="description" rows="3">{{ payment.description|default:'' }}</textarea>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                <a href="{% url 'dashboard:client_financial' client.pk %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

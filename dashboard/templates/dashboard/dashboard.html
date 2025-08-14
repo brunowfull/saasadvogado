@@ -1,0 +1,640 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Louzada & Laurindo{% endblock %}
+
+{% block custom_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #34495e;
+        --accent-color: #3498db;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --light-bg: #ecf0f1;
+    }
+
+    .main-content {
+        padding: 2rem !important;
+        background-color: #f8f9fa;
+    }
+
+    .top-bar {
+        background: white;
+        padding: 1rem 2rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .welcome-section h1 {
+        color: var(--primary-color);
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.8rem;
+    }
+
+    .welcome-section p {
+        color: #7f8c8d;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .quick-action-btn {
+        background: white;
+        border: none;
+        padding: 1rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: var(--primary-color);
+        font-weight: 600;
+        transition: all 0.3s ease;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+        color: var(--accent-color);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        border-left: 4px solid var(--accent-color);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        opacity: 0.05;
+        background: var(--accent-color);
+        border-radius: 50%;
+        transform: translate(30px, -30px);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    }
+
+    .stat-card.success { border-left-color: var(--success-color); }
+    .stat-card.warning { border-left-color: var(--warning-color); }
+    .stat-card.danger { border-left-color: var(--danger-color); }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .stat-icon.primary { background: var(--accent-color); }
+    .stat-icon.success { background: var(--success-color); }
+    .stat-icon.warning { background: var(--warning-color); }
+    .stat-icon.danger { background: var(--danger-color); }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+    .stat-label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .stat-change {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+
+    .stat-change.positive { color: var(--success-color); }
+    .stat-change.negative { color: var(--danger-color); }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        border: none;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: transparent;
+        border-bottom: 1px solid #eee;
+        padding: 1.5rem;
+        border-radius: 0;
+    }
+
+    .card-title {
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .activity-icon.client { background: var(--success-color); }
+    .activity-icon.task { background: var(--accent-color); }
+    .activity-icon.payment { background: var(--warning-color); }
+    .activity-icon.document { background: var(--danger-color); }
+
+    .activity-content h6 {
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .activity-content p {
+        color: #7f8c8d;
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    .activity-time {
+        color: #bdc3c7;
+        font-size: 0.75rem;
+    }
+
+    .agenda-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border-left: 4px solid var(--accent-color);
+    }
+
+    .agenda-item.urgent {
+        border-left-color: var(--danger-color);
+        background: rgba(231, 76, 60, 0.05);
+    }
+
+    .agenda-time {
+        color: var(--accent-color);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .agenda-title {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin: 0.25rem 0;
+        font-size: 0.9rem;
+    }
+
+    .agenda-client {
+        color: #7f8c8d;
+        font-size: 0.8rem;
+    }
+
+    .btn-new-task {
+        background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-new-task:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(52, 152, 219, 0.3);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #95a5a6;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Bar -->
+<div class="top-bar">
+    <div class="welcome-section">
+        <h1>Dashboard</h1>
+        <p>Visão geral das atividades e métricas do escritório</p>
+    </div>
+    <div class="user-info">
+        <div class="text-end me-3">
+            <div style="font-weight: 600; color: var(--primary-color);">{{ user.get_full_name|default:user.username }}</div>
+            <small class="text-muted">{{ user.email }}</small>
+        </div>
+        <div class="user-avatar">
+            {{ user.first_name.0|default:user.username.0|upper }}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <a href="{% url 'dashboard:client_create' %}" class="quick-action-btn">
+        <i class="fas fa-user-plus"></i>
+        Novo Cliente
+    </a>
+    <a href="{% url 'dashboard:task_create' %}" class="quick-action-btn">
+        <i class="fas fa-plus"></i>
+        Nova Tarefa
+    </a>
+    <a href="#" class="quick-action-btn">
+        <i class="fas fa-calendar-plus"></i>
+        Agendar Audiência
+    </a>
+    <a href="#" class="quick-action-btn">
+        <i class="fas fa-receipt"></i>
+        Lançar Receita
+    </a>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-header">
+            <div>
+                <h3 class="stat-value">{{ total_clientes }}</h3>
+                <p class="stat-label">Total de Clientes</p>
+                {% if clientes_novos > 0 %}
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +{{ clientes_novos }} este mês
+                </div>
+                {% endif %}
+            </div>
+            <div class="stat-icon primary">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-header">
+            <div>
+                <h3 class="stat-value">{{ tarefas_pendentes }}</h3>
+                <p class="stat-label">Tarefas Pendentes</p>
+                <div class="stat-change">
+                    <i class="fas fa-clock"></i> -4 desde ontem
+                </div>
+            </div>
+            <div class="stat-icon warning">
+                <i class="fas fa-tasks"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card danger">
+        <div class="stat-header">
+            <div>
+                <h3 class="stat-value">{{ audiencias_pendentes }}</h3>
+                <p class="stat-label">Audiências Agendadas</p>
+                <div class="stat-change">
+                    <i class="fas fa-calendar"></i> Próximos 30 dias
+                </div>
+            </div>
+            <div class="stat-icon danger">
+                <i class="fas fa-gavel"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-header">
+            <div>
+                <h3 class="stat-value">R$ {{ receitas_mes|floatformat:2 }}</h3>
+                <p class="stat-label">Receitas do Mês</p>
+                {% if saldo_mes > 0 %}
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +18% vs mês anterior
+                </div>
+                {% else %}
+                <div class="stat-change negative">
+                    <i class="fas fa-arrow-down"></i> -5% vs mês anterior
+                </div>
+                {% endif %}
+            </div>
+            <div class="stat-icon success">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div>
+                <h3 class="stat-value">R$ {{ despesas_mes|floatformat:2 }}</h3>
+                <p class="stat-label">Despesas do Mês</p>
+                <div class="stat-change negative">
+                    <i class="fas fa-arrow-down"></i> -3% vs mês anterior
+                </div>
+            </div>
+            <div class="stat-icon danger">
+                <i class="fas fa-credit-card"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card {% if saldo_mes > 0 %}success{% else %}danger{% endif %}">
+        <div class="stat-header">
+            <div>
+                <h3 class="stat-value">R$ {{ saldo_mes|floatformat:2 }}</h3>
+                <p class="stat-label">Saldo do Mês</p>
+                <div class="stat-change {% if saldo_mes > 0 %}positive{% else %}negative{% endif %}">
+                    <i class="fas fa-{% if saldo_mes > 0 %}arrow-up{% else %}arrow-down{% endif %}"></i> 
+                    {% if saldo_mes > 0 %}+22%{% else %}-15%{% endif %} vs mês anterior
+                </div>
+            </div>
+            <div class="stat-icon {% if saldo_mes > 0 %}success{% else %}danger{% endif %}">
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div>
+                <h3 class="stat-value">{{ total_processos }}</h3>
+                <p class="stat-label">Processos Ativos</p>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> +12 este mês
+                </div>
+            </div>
+            <div class="stat-icon primary">
+                <i class="fas fa-folder-open"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-header">
+            <div>
+                <h3 class="stat-value">{{ publicacoes_nao_lidas }}</h3>
+                <p class="stat-label">Publicações não Lidas</p>
+                <div class="stat-change">
+                    <i class="fas fa-newspaper"></i> -2 desde ontem
+                </div>
+            </div>
+            <div class="stat-icon warning">
+                <i class="fas fa-bell"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="content-grid">
+    <!-- Activities -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">
+                <i class="fas fa-history"></i>
+                Atividades Recentes
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if atividades_recentes %}
+                {% for atividade in atividades_recentes %}
+                <div class="activity-item">
+                    <div class="activity-icon {% if atividade.tipo == 'cliente_cadastrado' %}client{% elif atividade.tipo == 'tarefa_criada' %}task{% elif atividade.tipo == 'recebimento_confirmado' %}payment{% else %}document{% endif %}">
+                        {% if atividade.tipo == 'cliente_cadastrado' %}
+                            <i class="fas fa-user-plus"></i>
+                        {% elif atividade.tipo == 'tarefa_criada' %}
+                            <i class="fas fa-tasks"></i>
+                        {% elif atividade.tipo == 'audiencia_agendada' %}
+                            <i class="fas fa-calendar"></i>
+                        {% elif atividade.tipo == 'documento_gerado' %}
+                            <i class="fas fa-file-alt"></i>
+                        {% elif atividade.tipo == 'recebimento_confirmado' %}
+                            <i class="fas fa-dollar-sign"></i>
+                        {% else %}
+                            <i class="fas fa-info"></i>
+                        {% endif %}
+                    </div>
+                    <div class="activity-content flex-grow-1">
+                        <h6>{{ atividade.get_tipo_display }}</h6>
+                        <p>{{ atividade.descricao }}</p>
+                    </div>
+                    <div class="activity-time">
+                        {{ atividade.data_criacao|timesince }} atrás
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-history"></i>
+                <p>Nenhuma atividade recente</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Agenda -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title">
+                <i class="fas fa-calendar-alt"></i>
+                Agenda
+            </h5>
+            <button class="btn btn-new-task btn-sm">
+                <i class="fas fa-plus"></i> Nova Tarefa
+            </button>
+        </div>
+        <div class="card-body">
+            {% if proximas_audiencias or tarefas_urgentes %}
+                <!-- Próximas Audiências -->
+                {% for audiencia in proximas_audiencias %}
+                <div class="agenda-item urgent">
+                    <div class="agenda-time">
+                        {{ audiencia.data_hora|date:"d/m H:i" }}
+                    </div>
+                    <div class="agenda-title">
+                        Audiência - {{ audiencia.get_tipo_display }}
+                    </div>
+                    <div class="agenda-client">
+                        {{ audiencia.processo.cliente.nome }} - {{ audiencia.processo.titulo }}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Tarefas Urgentes -->
+                {% for task in tarefas_urgentes %}
+                <div class="agenda-item {% if task.prioridade == 'urgente' %}urgent{% endif %}">
+                    <div class="agenda-time">
+                        {{ task.data_inicio|date:"d/m H:i" }}
+                    </div>
+                    <div class="agenda-title">
+                        {{ task.titulo }}
+                    </div>
+                    <div class="agenda-client">
+                        {% if task.cliente %}{{ task.cliente.nome }}{% endif %}
+                        {% if task.processo %} - {{ task.processo.titulo }}{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-calendar-alt"></i>
+                <p>Nenhum compromisso agendado</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animações nos cards de estatísticas
+    document.addEventListener('DOMContentLoaded', function() {
+        const statCards = document.querySelectorAll('.stat-card');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '0';
+                    entry.target.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        entry.target.style.transition = 'all 0.6s ease';
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }, Math.random() * 200);
+                }
+            });
+        });
+        
+        statCards.forEach(card => observer.observe(card));
+        
+        // Atualização em tempo real (simulada)
+        setInterval(() => {
+            // Aqui você pode fazer chamadas AJAX para atualizar dados
+            console.log('Atualizando dados do dashboard...');
+        }, 30000); // A cada 30 segundos
+    });
+</script>
+{% endblock %}

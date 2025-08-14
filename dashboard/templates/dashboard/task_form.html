@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <h1 class="h2">{{ title }}</h1>
+
+    <form method="post" action="">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.titulo.id_for_label }}" class="form-label">{{ form.titulo.label }}</label>
+                    {{ form.titulo }}
+                    {% if form.titulo.help_text %}
+                        <div class="form-text">{{ form.titulo.help_text }}</div>
+                    {% endif %}
+                    {% if form.titulo.errors %}
+                        <div class="text-danger">{{ form.titulo.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.descricao.id_for_label }}" class="form-label">{{ form.descricao.label }}</label>
+                    {{ form.descricao }}
+                    {% if form.descricao.help_text %}
+                        <div class="form-text">{{ form.descricao.help_text }}</div>
+                    {% endif %}
+                    {% if form.descricao.errors %}
+                        <div class="text-danger">{{ form.descricao.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.data_inicio.id_for_label }}" class="form-label">{{ form.data_inicio.label }}</label>
+                    {{ form.data_inicio }}
+                    {% if form.data_inicio.help_text %}
+                        <div class="form-text">{{ form.data_inicio.help_text }}</div>
+                    {% endif %}
+                    {% if form.data_inicio.errors %}
+                        <div class="text-danger">{{ form.data_inicio.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.data_fim.id_for_label }}" class="form-label">{{ form.data_fim.label }}</label>
+                    {{ form.data_fim }}
+                    {% if form.data_fim.help_text %}
+                        <div class="form-text">{{ form.data_fim.help_text }}</div>
+                    {% endif %}
+                    {% if form.data_fim.errors %}
+                        <div class="text-danger">{{ form.data_fim.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <label for="{{ form.dia_todo.id_for_label }}" class="form-check-label">{{ form.dia_todo.label }}</label>
+                    {{ form.dia_todo }}
+                    {% if form.dia_todo.help_text %}
+                        <div class="form-text">{{ form.dia_todo.help_text }}</div>
+                    {% endif %}
+                    {% if form.dia_todo.errors %}
+                        <div class="text-danger">{{ form.dia_todo.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.cliente.id_for_label }}" class="form-label">{{ form.cliente.label }}</label>
+                    {{ form.cliente }}
+                    {% if form.cliente.help_text %}
+                        <div class="form-text">{{ form.cliente.help_text }}</div>
+                    {% endif %}
+                    {% if form.cliente.errors %}
+                        <div class="text-danger">{{ form.cliente.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.processo.id_for_label }}" class="form-label">{{ form.processo.label }}</label>
+                    {{ form.processo }}
+                    {% if form.processo.help_text %}
+                        <div class="form-text">{{ form.processo.help_text }}</div>
+                    {% endif %}
+                    {% if form.processo.errors %}
+                        <div class="text-danger">{{ form.processo.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.prioridade.id_for_label }}" class="form-label">{{ form.prioridade.label }}</label>
+                    {{ form.prioridade }}
+                    {% if form.prioridade.help_text %}
+                        <div class="form-text">{{ form.prioridade.help_text }}</div>
+                    {% endif %}
+                    {% if form.prioridade.errors %}
+                        <div class="text-danger">{{ form.prioridade.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                    {{ form.status }}
+                    {% if form.status.help_text %}
+                        <div class="form-text">{{ form.status.help_text }}</div>
+                    {% endif %}
+                    {% if form.status.errors %}
+                        <div class="text-danger">{{ form.status.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Salvar Tarefa</button>
+        <a href="{% url 'dashboard:task_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endblock %}

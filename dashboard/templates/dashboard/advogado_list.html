@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Advogados - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Advogados</h1>
+        <a href="{% url 'dashboard:lawyer_create' %}" class="btn btn-primary">Cadastrar Advogado</a>
+    </div>
+
+    <div class="d-flex justify-content-end mb-3">
+        <select class="form-select" style="width: 200px;" onchange="window.location.href=this.value">
+            <option value="?page_size=15" {% if page_size == 15 %}selected{% endif %}>15 por página</option>
+            <option value="?page_size=30" {% if page_size == 30 %}selected{% endif %}>30 por página</option>
+            <option value="?page_size=50" {% if page_size == 50 %}selected{% endif %}>50 por página</option>
+            <option value="?page_size=100" {% if page_size == 100 %}selected{% endif %}>100 por página</option>
+        </select>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome do Advogado</th>
+                            <th>CPF</th>
+                            <th>Número OAB</th>
+                            <th>Seccional OAB</th>
+                            <th>Telefone</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for advogado in page_obj %}
+                        <tr>
+                            <td>{{ advogado.get_full_name|default:advogado.username }}</td>
+                            <td>{{ advogado.cpf|default:"-" }}</td>
+                            <td>{{ advogado.oab_number|default:"-" }}</td>
+                            <td>{{ advogado.get_oab_section_display|default:"-" }}</td>
+                            <td>{{ advogado.phone|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'dashboard:lawyer_edit' advogado.id %}" class="btn btn-sm btn-warning">✎</a>
+                                <a href="{% url 'dashboard:lawyer_delete' advogado.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este advogado?');">🗑</a>
+                                <a href="{% url 'dashboard:lawyer_detail' advogado.id %}" class="btn btn-sm btn-info">ℹ</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nenhum advogado cadastrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&page_size={{ page_size }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}&page_size={{ page_size }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&page_size={{ page_size }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

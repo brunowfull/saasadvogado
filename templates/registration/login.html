@@ -1,0 +1,188 @@
+{% extends 'base_login.html' %}
+
+{% block title %}Login - Louzada & Laurindo{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-gradient position-relative">
+    
+    <!-- Padrão de fundo -->
+    <div class="position-absolute w-100 h-100 bg-pattern"></div>
+
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
+            <div class="card shadow-lg border-0 rounded-4 backdrop-blur">
+                
+                <!-- Cabeçalho com logo -->
+                <div class="card-header text-center border-0 bg-transparent pt-4 pb-2">
+                    <div class="mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary rounded-circle icon-circle">
+                            <i class="fas fa-balance-scale text-white fs-2"></i>
+                        </div>
+                    </div>
+                    <h2 class="fw-bold text-primary mb-1 brand-title">Louzada & Laurindo</h2>
+                    <p class="text-muted mb-0 small">Escritório de Advocacia</p>
+                    <hr class="mt-3 mb-0 w-50 mx-auto">
+                </div>
+                
+                <div class="card-body px-4 pb-4">
+                    <h4 class="text-center mb-4 text-dark fw-semibold">Acesso ao Dashboard</h4>
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show rounded-3" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Erro no login:</strong>
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Usuário -->
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold text-dark">
+                                <i class="fas fa-user me-2 text-primary"></i>Usuário
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start">
+                                    <i class="fas fa-user text-muted"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control border-start-0 {% if form.username.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.username.id_for_label }}"
+                                       name="{{ form.username.name }}"
+                                       placeholder="Digite seu usuário"
+                                       required>
+                            </div>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.username.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Senha -->
+                        <div class="mb-4">
+                            <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold text-dark">
+                                <i class="fas fa-lock me-2 text-primary"></i>Senha
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start">
+                                    <i class="fas fa-lock text-muted"></i>
+                                </span>
+                                <input type="password" 
+                                       class="form-control border-start-0 {% if form.password.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.password.id_for_label }}"
+                                       name="{{ form.password.name }}"
+                                       placeholder="Digite sua senha"
+                                       required>
+                            </div>
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.password.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Lembrar -->
+                        <div class="mb-4 form-check">
+                            <input class="form-check-input" type="checkbox" id="rememberMe">
+                            <label class="form-check-label text-muted small" for="rememberMe">
+                                Manter-me conectado
+                            </label>
+                        </div>
+                        
+                        <!-- Botão -->
+                        <button type="submit" class="btn btn-primary w-100 fw-semibold py-3 mb-3 btn-login">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Entrar no Dashboard
+                        </button>
+                        
+                        <!-- Esqueceu senha -->
+                        <div class="text-center">
+                            <a href="#" class="text-decoration-none small text-muted hover-primary">
+                                <i class="fas fa-key me-1"></i>Esqueceu sua senha?
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Rodapé -->
+                <div class="card-footer text-center bg-transparent border-0 pt-0 pb-4">
+                    <small class="text-muted">
+                        © 2025 Desenvolvido por BwDev. Todos os direitos reservados.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
+
+    .bg-gradient {
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+    }
+    .bg-pattern {
+        background-image: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none"><circle cx="30" cy="30" r="1" fill="%23fff" fill-opacity="0.05"/></g></svg>');
+    }
+    .backdrop-blur {
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+    .icon-circle {
+        width: 80px;
+        height: 80px;
+    }
+    .brand-title {
+        font-family: 'Playfair Display', serif;
+    }
+    .hover-primary:hover {
+        color: #007bff !important;
+        transition: color 0.3s ease;
+    }
+    .btn-login {
+        border-radius: 12px;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+    }
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict';
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                const btn = form.querySelector('button[type="submit"]');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Entrando...';
+                btn.disabled = true;
+            }
+            form.classList.add('was-validated');
+        }, false);
+    })();
+</script>
+{% endblock %}

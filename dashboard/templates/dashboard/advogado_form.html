@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <h1 class="h2">{{ title }}</h1>
+
+    <form method="post" action="">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+                    {{ form.username }}
+                    {% if form.username.help_text %}
+                        <div class="form-text">{{ form.username.help_text }}</div>
+                    {% endif %}
+                    {% if form.username.errors %}
+                        <div class="text-danger">{{ form.username.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.help_text %}
+                        <div class="form-text">{{ form.first_name.help_text }}</div>
+                    {% endif %}
+                    {% if form.first_name.errors %}
+                        <div class="text-danger">{{ form.first_name.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.help_text %}
+                        <div class="form-text">{{ form.last_name.help_text }}</div>
+                    {% endif %}
+                    {% if form.last_name.errors %}
+                        <div class="text-danger">{{ form.last_name.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.help_text %}
+                        <div class="form-text">{{ form.email.help_text }}</div>
+                    {% endif %}
+                    {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.cpf.id_for_label }}" class="form-label">{{ form.cpf.label }}</label>
+                    {{ form.cpf }}
+                    {% if form.cpf.help_text %}
+                        <div class="form-text">{{ form.cpf.help_text }}</div>
+                    {% endif %}
+                    {% if form.cpf.errors %}
+                        <div class="text-danger">{{ form.cpf.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.oab_number.id_for_label }}" class="form-label">{{ form.oab_number.label }}</label>
+                    {{ form.oab_number }}
+                    {% if form.oab_number.help_text %}
+                        <div class="form-text">{{ form.oab_number.help_text }}</div>
+                    {% endif %}
+                    {% if form.oab_number.errors %}
+                        <div class="text-danger">{{ form.oab_number.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.oab_section.id_for_label }}" class="form-label">{{ form.oab_section.label }}</label>
+                    {{ form.oab_section }}
+                    {% if form.oab_section.help_text %}
+                        <div class="form-text">{{ form.oab_section.help_text }}</div>
+                    {% endif %}
+                    {% if form.oab_section.errors %}
+                        <div class="text-danger">{{ form.oab_section.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                    {{ form.phone }}
+                    {% if form.phone.help_text %}
+                        <div class="form-text">{{ form.phone.help_text }}</div>
+                    {% endif %}
+                    {% if form.phone.errors %}
+                        <div class="text-danger">{{ form.phone.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.pix_key.id_for_label }}" class="form-label">{{ form.pix_key.label }}</label>
+                    {{ form.pix_key }}
+                    {% if form.pix_key.help_text %}
+                        <div class="form-text">{{ form.pix_key.help_text }}</div>
+                    {% endif %}
+                    {% if form.pix_key.errors %}
+                        <div class="text-danger">{{ form.pix_key.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.professional_address.id_for_label }}" class="form-label">{{ form.professional_address.label }}</label>
+                    {{ form.professional_address }}
+                    {% if form.professional_address.help_text %}
+                        <div class="form-text">{{ form.professional_address.help_text }}</div>
+                    {% endif %}
+                    {% if form.professional_address.errors %}
+                        <div class="text-danger">{{ form.professional_address.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.registration_date.id_for_label }}" class="form-label">Data de Cadastro</label>
+                    <input type="date" class="form-control" id="id_registration_date" name="registration_date" value="{{ form.instance.registration_date|date:'Y-m-d' }}">
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <label for="{{ form.enable_publications.id_for_label }}" class="form-check-label">{{ form.enable_publications.label }}</label>
+                    {{ form.enable_publications }}
+                    {% if form.enable_publications.help_text %}
+                        <div class="form-text">{{ form.enable_publications.help_text }}</div>
+                    {% endif %}
+                    {% if form.enable_publications.errors %}
+                        <div class="text-danger">{{ form.enable_publications.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <label for="{{ form.enable_login.id_for_label }}" class="form-check-label">{{ form.enable_login.label }}</label>
+                    {{ form.enable_login }}
+                    {% if form.enable_login.help_text %}
+                        <div class="form-text">{{ form.enable_login.help_text }}</div>
+                    {% endif %}
+                    {% if form.enable_login.errors %}
+                        <div class="text-danger">{{ form.enable_login.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                {% if form.instance.pk %}
+                <div class="mb-3">
+                    <label class="form-label">Permissões de Acesso</label>
+                    <a href="#" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-user-cog"></i> Gerenciar Permissões
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">{{ form.password1.label }}</label>
+                    {{ form.password1 }}
+                    {% if form.password1.help_text %}
+                        <div class="form-text">{{ form.password1.help_text }}</div>
+                    {% endif %}
+                    {% if form.password1.errors %}
+                        <div class="text-danger">{{ form.password1.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">{{ form.password2.label }}</label>
+                    {{ form.password2 }}
+                    {% if form.password2.help_text %}
+                        <div class="form-text">{{ form.password2.help_text }}</div>
+                    {% endif %}
+                    {% if form.password2.errors %}
+                        <div class="text-danger">{{ form.password2.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">{{ title }}</button>
+        <a href="{% url 'dashboard:lawyers' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endblock %}

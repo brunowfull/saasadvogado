@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão de Tipo de Receita - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <h1 class="h2">Confirmar Exclusão de Tipo de Receita</h1>
+    <p>Você tem certeza que deseja excluir o tipo de receita <strong>{{ tipo_receita.nome }}</strong>?</p>
+    
+    <form method="post" action="{% url 'dashboard:tipo_receita_delete' tipo_receita.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+        <a href="{% url 'dashboard:tipo_receita_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endblock %}

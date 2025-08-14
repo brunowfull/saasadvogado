@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Clientes - LawFirm Finance{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Clientes</h1>
+        <a href="{% url 'dashboard:client_create' %}" class="btn btn-primary">Cadastrar Cliente</a>
+    </div>
+
+    <div class="d-flex justify-content-end mb-3">
+        <select class="form-select" style="width: 200px;" onchange="window.location.href=this.value">
+            <option value="?page_size=15" {% if page_size == 15 %}selected{% endif %}>15 por página</option>
+            <option value="?page_size=30" {% if page_size == 30 %}selected{% endif %}>30 por página</option>
+            <option value="?page_size=50" {% if page_size == 50 %}selected{% endif %}>50 por página</option>
+            <option value="?page_size=100" {% if page_size == 100 %}selected{% endif %}>100 por página</option>
+        </select>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nº</th>
+                            <th>Nome</th>
+                            <th>Nome da Mãe</th>
+                            <th>Telefone</th>
+                            <th>CPF</th>
+                            <th>Data do Cadastro</th>
+                            <th>Cidade</th>
+                            <th>Estado</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in page_obj %}
+                        <tr>
+                            <td>{{ forloop.counter|stringformat:"03d" }}</td>
+                            <td>{{ client.nome }}</td>
+                            <td>{{ client.nome_mae|default:"-" }}</td>
+                            <td>{{ client.telefone }}</td>
+                            <td>{{ client.cpf_cnpj }}</td>
+                            <td>{{ client.data_cadastro|date:"d/m/Y" }}</td>
+                            <td>{{ client.cidade|default:"-" }}</td>
+                            <td>{{ client.estado|default:"-" }}</td>
+                            <td>
+                                {% if client.ativo %}
+                                    <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inativo</span>
+                                {% endif %}
+                                {% if client.area_cliente_ativa %}
+                                    <span class="badge bg-primary">Área ativa</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'dashboard:client_edit' client.id %}" class="btn btn-sm btn-warning">✎</a>
+                                <a href="{% url 'dashboard:client_financial' client.id %}" class="btn btn-sm btn-success">$</a>
+                                <a href="{% url 'dashboard:client_delete' client.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este cliente?');">🗑</a>
+                                <a href="{% url 'dashboard:client_detail' client.id %}" class="btn btn-sm btn-info">ℹ</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&page_size={{ page_size }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}&page_size={{ page_size }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&page_size={{ page_size }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
