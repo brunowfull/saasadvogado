@@ -417,11 +417,11 @@
                                             </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#">
-                                                <i class="fas fa-tags"></i>
-                                                Tipos de Receita
-                                            </a>
-                                        </li>
+                                <a class="nav-link" href="{% url 'dashboard:tipo_receita_list' %}">
+                                    <i class="fas fa-tags"></i>
+                                    Tipos de Receita
+                                </a>
+                            </li>
                                         <li class="nav-item">
                                             <a class="nav-link" href="#">
                                                 <i class="fas fa-receipt"></i>
@@ -488,13 +488,13 @@
                         <div class="nav-section-title">Operacional</div>
                         <ul class="nav flex-column">
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
+                                <a class="nav-link" href="{% url 'dashboard:task_list' %}">
                                     <i class="fas fa-tasks"></i>
                                     Tarefas
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
+                                <a class="nav-link" href="{% url 'dashboard:audiencia_list' %}">
                                     <i class="fas fa-gavel"></i>
                                     Audiências
                                 </a>
@@ -506,7 +506,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
+                                <a class="nav-link" href="{% url 'dashboard:processo_list' %}">
                                     <i class="fas fa-folder-open"></i>
                                     Processos
                                 </a>

@@ -1,0 +1,49 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Processos - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Processos</h1>
+            <p class="text-muted">Gerencie seus processos.</p>
+        </div>
+        <div>
+            <a href="{% url 'dashboard:processo_create' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Novo Processo</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Título</th>
+                    <th>Cliente</th>
+                    <th>Advogado Responsável</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for processo in processos %}
+                <tr>
+                    <td>{{ processo.numero }}</td>
+                    <td>{{ processo.titulo }}</td>
+                    <td>{{ processo.cliente.nome }}</td>
+                    <td>{{ processo.advogado_responsavel.get_full_name|default:processo.advogado_responsavel.username }}</td>
+                    <td>{{ processo.get_status_display }}</td>
+                    <td>
+                        <a href="{% url 'dashboard:processo_update' processo.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                        <a href="{% url 'dashboard:processo_delete' processo.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

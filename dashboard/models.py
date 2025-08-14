@@ -29,7 +29,7 @@ class Cliente(models.Model):
 class TipoReceita(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
-    data_cadastro = models.DateTimeField(auto_now_add=True, verbose_name="Data de Cadastro")
+    data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
     
     class Meta:
         verbose_name = "Tipo de Receita"
@@ -42,7 +42,8 @@ class TipoReceita(models.Model):
 class TipoDespesa(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
-    
+    data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
+
     class Meta:
         verbose_name = "Tipo de Despesa"
         verbose_name_plural = "Tipos de Despesa"
@@ -52,8 +53,7 @@ class TipoDespesa(models.Model):
 
 class FormaPagamento(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome")
-    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
-    ativo = models.BooleanField(default=True, verbose_name="Ativo")
+    data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
     
     class Meta:
         verbose_name = "Forma de Pagamento"
@@ -65,7 +65,7 @@ class FormaPagamento(models.Model):
 class PrazoPagamento(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome")
     dias = models.IntegerField(verbose_name="Dias")
-    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
     
     class Meta:
         verbose_name = "Prazo de Pagamento"
@@ -76,17 +76,14 @@ class PrazoPagamento(models.Model):
 
 class Banco(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome")
-    codigo = models.CharField(max_length=10, unique=True, verbose_name="Código")
-    agencia = models.CharField(max_length=20, blank=True, null=True, verbose_name="Agência")
-    conta = models.CharField(max_length=20, blank=True, null=True, verbose_name="Conta")
-    ativo = models.BooleanField(default=True, verbose_name="Ativo")
+    data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
     
     class Meta:
         verbose_name = "Banco"
         verbose_name_plural = "Bancos"
     
     def __str__(self):
-        return f"{self.nome} - {self.codigo}"
+        return self.nome
 
 class Processo(models.Model):
     STATUS_CHOICES = [

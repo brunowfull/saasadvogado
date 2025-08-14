@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Task, Cliente, Processo, Audiencia, Receita, Despesa, TipoDemanda, PrazoPagamento, Banco, TipoReceita
+from .models import Task, Cliente, Processo, Audiencia, Receita, Despesa, TipoDemanda, PrazoPagamento, Banco, TipoReceita, TipoDespesa, FormaPagamento
 from users.models import Lawyer
 
 User = get_user_model()
@@ -223,11 +223,8 @@ class AdvogadoForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Personalizar campos de senha
-        self.fields['password1'].widget.attrs.update({'class': 'form-control'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control'})
-        self.fields['password1'].label = 'Senha'
         self.fields['password2'].label = 'Confirmação de Senha'
-        self.fields['password1'].help_text = 'Sua senha deve conter pelo menos 8 caracteres.'
         self.fields['password2'].help_text = 'Digite a mesma senha novamente, para verificação.'
 
     advogado = forms.ModelChoiceField(
@@ -252,3 +249,49 @@ class TipoReceitaForm(forms.ModelForm):
            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do tipo de receita'}),
            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descrição do tipo de receita'}),
        }
+
+class TipoDespesaForm(forms.ModelForm):
+    class Meta:
+        model = TipoDespesa
+        fields = ['nome', 'descricao', 'data_cadastro']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do tipo de despesa'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descrição do tipo de despesa'}),
+            'data_cadastro': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+        }
+
+class FormaPagamentoForm(forms.ModelForm):
+    class Meta:
+        model = FormaPagamento
+        fields = ['nome', 'data_cadastro']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da forma de pagamento'}),
+            'data_cadastro': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+        }
+
+class BancoForm(forms.ModelForm):
+    class Meta:
+        model = Banco
+        fields = ['nome', 'data_cadastro']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do banco'}),
+            'data_cadastro': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+        }
+
+class PrazoPagamentoForm(forms.ModelForm):
+    class Meta:
+        model = PrazoPagamento
+        fields = ['nome', 'dias', 'data_cadastro']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do prazo de pagamento'}),
+            'dias': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Número de dias'}),
+            'data_cadastro': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+        }
+
+class TipoDemandaForm(forms.ModelForm):
+    class Meta:
+        model = TipoDemanda
+        fields = ['nome']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do tipo de demanda'}),
+        }

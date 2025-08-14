@@ -1,0 +1,82 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Calendário de Tarefas - {{ block.super }}{% endblock %}
+
+{% block custom_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<style>
+    .fc .fc-toolbar-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    .fc .fc-daygrid-day-number {
+        font-size: 0.9rem;
+    }
+    .fc .fc-event {
+        cursor: pointer;
+        border: none;
+        padding: 5px;
+        font-size: 0.85rem;
+    }
+    .fc-event:hover {
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Calendário de Tarefas e Audiências</h1>
+            <p class="text-muted">Visualize e gerencie suas tarefas e audiências.</p>
+        </div>
+        <div>
+            <a href="{% url 'dashboard:task_create' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Nova Tarefa</a>
+            <a href="{% url 'dashboard:audiencia_create' %}" class="btn btn-danger"><i class="fas fa-gavel me-2"></i>Agendar Audiência</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div id="calendar"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'pt-br',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        events: '/dashboard/calendar_events/',
+        eventClick: function(info) {
+            if (info.event.url) {
+                window.open(info.event.url, "_self");
+                info.jsEvent.preventDefault(); // Prevent the browser from following the link
+            }
+        },
+        eventDidMount: function(info) {
+            // Adiciona tooltip
+            var tooltip = new bootstrap.Tooltip(info.el, {
+                title: info.event.title,
+                placement: 'top',
+                trigger: 'hover',
+                container: 'body'
+            });
+        }
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}

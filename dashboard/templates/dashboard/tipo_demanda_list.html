@@ -1,0 +1,43 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Tipos de Demanda - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Tipos de Demanda</h1>
+            <p class="text-muted">Gerencie os tipos de demanda.</p>
+        </div>
+        <div>
+            <a href="{% url 'dashboard:tipo_demanda_create' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Cadastrar Tipo de Demanda</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Tipo de Demanda</th>
+                    <th>Data de Cadastro</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tipo_demanda in tipos_demanda %}
+                <tr>
+                    <td>{{ tipo_demanda.nome }}</td>
+                    <td>{{ tipo_demanda.data_cadastro|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'dashboard:tipo_demanda_update' tipo_demanda.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                        <a href="{% url 'dashboard:tipo_demanda_delete' tipo_demanda.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -11,12 +11,13 @@ import json
 from .models import (
     Task, Cliente, Processo, Audiencia, Publicacao,
     Receita, Despesa, AtividadeRecente, TipoReceita, TipoDespesa,
-    FormaPagamento, Banco
+    FormaPagamento, Banco, PrazoPagamento, TipoDemanda
 )
 from users.models import Lawyer
 from .forms import (
     TaskForm, ClienteForm, AdvogadoForm, ProcessoForm, 
-    AudienciaForm, ReceitaForm, DespesaForm, DashboardFilterForm
+    AudienciaForm, ReceitaForm, DespesaForm, DashboardFilterForm, TipoReceitaForm,
+    TipoDespesaForm, FormaPagamentoForm, BancoForm, PrazoPagamentoForm, TipoDemandaForm
 )
 
 @login_required
@@ -122,19 +123,8 @@ def dashboard_view(request):
 
 @login_required
 def task_list(request):
-    """Lista de tarefas"""
-    tasks = Task.objects.select_related('cliente', 'processo', 'advogado').order_by('-data_inicio')
-    
-    # Filtros
-    status = request.GET.get('status')
-    if status:
-        tasks = tasks.filter(status=status)
-    
-    prioridade = request.GET.get('prioridade')
-    if prioridade:
-        tasks = tasks.filter(prioridade=prioridade)
-    
-    return render(request, 'dashboard/task_list.html', {'tasks': tasks})
+    """Exibe o calendário de tarefas e audiências."""
+    return render(request, 'dashboard/task_calendar.html')
 
 @login_required
 def task_create(request):
@@ -199,6 +189,59 @@ def task_detail(request, pk):
     return render(request, 'dashboard/task_detail.html', {
         'task': task
     })
+
+
+# Views para Processos
+@login_required
+def processo_list(request):
+    """Lista de processos"""
+    processos = Processo.objects.select_related('cliente', 'advogado_responsavel').order_by('-data_inicio')
+    return render(request, 'dashboard/processo_list.html', {'processos': processos})
+
+@login_required
+def processo_create(request):
+    """Criar novo processo"""
+    if request.method == 'POST':
+        form = ProcessoForm(request.POST)
+        if form.is_valid():
+            processo = form.save()
+            messages.success(request, 'Processo criado com sucesso!')
+            return redirect('dashboard:processo_list')
+    else:
+        form = ProcessoForm()
+    return render(request, 'dashboard/processo_form.html', {'form': form, 'title': 'Novo Processo'})
+
+@login_required
+def processo_update(request, pk):
+    """Atualizar processo"""
+    processo = get_object_or_404(Processo, pk=pk)
+    if request.method == 'POST':
+        form = ProcessoForm(request.POST, instance=processo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Processo atualizado com sucesso!')
+            return redirect('dashboard:processo_list')
+    else:
+        form = ProcessoForm(instance=processo)
+    return render(request, 'dashboard/processo_form.html', {'form': form, 'title': 'Editar Processo'})
+
+@login_required
+def processo_delete(request, pk):
+    """Deletar processo"""
+    processo = get_object_or_404(Processo, pk=pk)
+    if request.method == 'POST':
+        processo.delete()
+        messages.success(request, 'Processo excluído com sucesso!')
+        return redirect('dashboard:processo_list')
+    return render(request, 'dashboard/processo_confirm_delete.html', {'processo': processo})
+
+
+# Views para Audiências
+@login_required
+def audiencia_list(request):
+    """Lista de audiências"""
+    audiencias = Audiencia.objects.select_related('processo').order_by('-data_hora')
+    return render(request, 'dashboard/audiencia_list.html', {'audiencias': audiencias})
 
 # Views para Clientes
 from django.core.paginator import Paginator
@@ -845,3 +888,303 @@ def tipo_receita_delete(request, pk):
         return redirect('dashboard:tipo_receita_list')
     
     return render(request, 'dashboard/tipo_receita_confirm_delete.html', {'tipo_receita': tipo_receita})
+
+# Views para TipoDespesa
+@login_required
+def tipo_despesa_list(request):
+    """Lista de tipos de despesa"""
+    tipos_despesa = TipoDespesa.objects.all().order_by('nome')
+    
+    return render(request, 'dashboard/tipo_despesa_list.html', {
+        'tipos_despesa': tipos_despesa
+    })
+
+@login_required
+def tipo_despesa_create(request):
+    """Criar novo tipo de despesa"""
+    if request.method == 'POST':
+        form = TipoDespesaForm(request.POST)
+        if form.is_valid():
+            tipo_despesa = form.save()
+            messages.success(request, 'Tipo de despesa cadastrado com sucesso!')
+            return redirect('dashboard:tipo_despesa_list')
+    else:
+        form = TipoDespesaForm()
+    
+    return render(request, 'dashboard/tipo_despesa_form.html', {
+        'form': form,
+        'form_title': 'Novo Tipo de Despesa',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def tipo_despesa_update(request, pk):
+    """Atualizar tipo de despesa"""
+    tipo_despesa = get_object_or_404(TipoDespesa, pk=pk)
+    
+    if request.method == 'POST':
+        form = TipoDespesaForm(request.POST, instance=tipo_despesa)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tipo de despesa atualizado com sucesso!')
+            return redirect('dashboard:tipo_despesa_list')
+    else:
+        form = TipoDespesaForm(instance=tipo_despesa)
+    
+    return render(request, 'dashboard/tipo_despesa_form.html', {
+        'form': form,
+        'form_title': 'Editar Tipo de Despesa',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def tipo_despesa_delete(request, pk):
+    """Deletar tipo de despesa"""
+    tipo_despesa = get_object_or_404(TipoDespesa, pk=pk)
+    
+    if request.method == 'POST':
+        tipo_despesa.delete()
+        messages.success(request, 'Tipo de despesa excluído com sucesso!')
+        return redirect('dashboard:tipo_despesa_list')
+    
+    return render(request, 'dashboard/tipo_despesa_confirm_delete.html', {'tipo_despesa': tipo_despesa})
+
+# Views para FormaPagamento
+@login_required
+def forma_pagamento_list(request):
+    """Lista de formas de pagamento"""
+    formas_pagamento = FormaPagamento.objects.all().order_by('nome')
+    
+    return render(request, 'dashboard/forma_pagamento_list.html', {
+        'formas_pagamento': formas_pagamento
+    })
+
+@login_required
+def forma_pagamento_create(request):
+    """Criar nova forma de pagamento"""
+    if request.method == 'POST':
+        form = FormaPagamentoForm(request.POST)
+        if form.is_valid():
+            forma_pagamento = form.save()
+            messages.success(request, 'Forma de pagamento cadastrada com sucesso!')
+            return redirect('dashboard:forma_pagamento_list')
+    else:
+        form = FormaPagamentoForm()
+    
+    return render(request, 'dashboard/forma_pagamento_form.html', {
+        'form': form,
+        'form_title': 'Nova Forma de Pagamento',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def forma_pagamento_update(request, pk):
+    """Atualizar forma de pagamento"""
+    forma_pagamento = get_object_or_404(FormaPagamento, pk=pk)
+    
+    if request.method == 'POST':
+        form = FormaPagamentoForm(request.POST, instance=forma_pagamento)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Forma de pagamento atualizada com sucesso!')
+            return redirect('dashboard:forma_pagamento_list')
+    else:
+        form = FormaPagamentoForm(instance=forma_pagamento)
+    
+    return render(request, 'dashboard/forma_pagamento_form.html', {
+        'form': form,
+        'form_title': 'Editar Forma de Pagamento',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def forma_pagamento_delete(request, pk):
+    """Deletar forma de pagamento"""
+    forma_pagamento = get_object_or_404(FormaPagamento, pk=pk)
+    
+    if request.method == 'POST':
+        forma_pagamento.delete()
+        messages.success(request, 'Forma de pagamento excluída com sucesso!')
+        return redirect('dashboard:forma_pagamento_list')
+    
+    return render(request, 'dashboard/forma_pagamento_confirm_delete.html', {'forma_pagamento': forma_pagamento})
+
+# Views para Banco
+@login_required
+def banco_list(request):
+    """Lista de bancos"""
+    bancos = Banco.objects.all().order_by('nome')
+    
+    return render(request, 'dashboard/banco_list.html', {
+        'bancos': bancos
+    })
+
+@login_required
+def banco_create(request):
+    """Criar novo banco"""
+    if request.method == 'POST':
+        form = BancoForm(request.POST)
+        if form.is_valid():
+            banco = form.save()
+            messages.success(request, 'Banco cadastrado com sucesso!')
+            return redirect('dashboard:banco_list')
+    else:
+        form = BancoForm()
+    
+    return render(request, 'dashboard/banco_form.html', {
+        'form': form,
+        'form_title': 'Novo Banco',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def banco_update(request, pk):
+    """Atualizar banco"""
+    banco = get_object_or_404(Banco, pk=pk)
+    
+    if request.method == 'POST':
+        form = BancoForm(request.POST, instance=banco)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Banco atualizado com sucesso!')
+            return redirect('dashboard:banco_list')
+    else:
+        form = BancoForm(instance=banco)
+    
+    return render(request, 'dashboard/banco_form.html', {
+        'form': form,
+        'form_title': 'Editar Banco',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def banco_delete(request, pk):
+    """Deletar banco"""
+    banco = get_object_or_404(Banco, pk=pk)
+    
+    if request.method == 'POST':
+        banco.delete()
+        messages.success(request, 'Banco excluído com sucesso!')
+        return redirect('dashboard:banco_list')
+    
+    return render(request, 'dashboard/banco_confirm_delete.html', {'banco': banco})
+
+# Views para PrazoPagamento
+@login_required
+def prazo_pagamento_list(request):
+    """Lista de prazos de pagamento"""
+    prazos_pagamento = PrazoPagamento.objects.all().order_by('nome')
+    
+    return render(request, 'dashboard/prazo_pagamento_list.html', {
+        'prazos_pagamento': prazos_pagamento
+    })
+
+@login_required
+def prazo_pagamento_create(request):
+    """Criar novo prazo de pagamento"""
+    if request.method == 'POST':
+        form = PrazoPagamentoForm(request.POST)
+        if form.is_valid():
+            prazo_pagamento = form.save()
+            messages.success(request, 'Prazo de pagamento cadastrado com sucesso!')
+            return redirect('dashboard:prazo_pagamento_list')
+    else:
+        form = PrazoPagamentoForm()
+    
+    return render(request, 'dashboard/prazo_pagamento_form.html', {
+        'form': form,
+        'form_title': 'Novo Prazo de Pagamento',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def prazo_pagamento_update(request, pk):
+    """Atualizar prazo de pagamento"""
+    prazo_pagamento = get_object_or_404(PrazoPagamento, pk=pk)
+    
+    if request.method == 'POST':
+        form = PrazoPagamentoForm(request.POST, instance=prazo_pagamento)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Prazo de pagamento atualizado com sucesso!')
+            return redirect('dashboard:prazo_pagamento_list')
+    else:
+        form = PrazoPagamentoForm(instance=prazo_pagamento)
+    
+    return render(request, 'dashboard/prazo_pagamento_form.html', {
+        'form': form,
+        'form_title': 'Editar Prazo de Pagamento',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def prazo_pagamento_delete(request, pk):
+    """Deletar prazo de pagamento"""
+    prazo_pagamento = get_object_or_404(PrazoPagamento, pk=pk)
+    
+    if request.method == 'POST':
+        prazo_pagamento.delete()
+        messages.success(request, 'Prazo de pagamento excluído com sucesso!')
+        return redirect('dashboard:prazo_pagamento_list')
+    
+    return render(request, 'dashboard/prazo_pagamento_confirm_delete.html', {'prazo_pagamento': prazo_pagamento})
+
+# Views para TipoDemanda
+@login_required
+def tipo_demanda_list(request):
+    """Lista de tipos de demanda"""
+    tipos_demanda = TipoDemanda.objects.all().order_by('nome')
+    
+    return render(request, 'dashboard/tipo_demanda_list.html', {
+        'tipos_demanda': tipos_demanda
+    })
+
+@login_required
+def tipo_demanda_create(request):
+    """Criar novo tipo de demanda"""
+    if request.method == 'POST':
+        form = TipoDemandaForm(request.POST)
+        if form.is_valid():
+            tipo_demanda = form.save()
+            messages.success(request, 'Tipo de demanda cadastrado com sucesso!')
+            return redirect('dashboard:tipo_demanda_list')
+    else:
+        form = TipoDemandaForm()
+    
+    return render(request, 'dashboard/tipo_demanda_form.html', {
+        'form': form,
+        'form_title': 'Novo Tipo de Demanda',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def tipo_demanda_update(request, pk):
+    """Atualizar tipo de demanda"""
+    tipo_demanda = get_object_or_404(TipoDemanda, pk=pk)
+    
+    if request.method == 'POST':
+        form = TipoDemandaForm(request.POST, instance=tipo_demanda)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tipo de demanda atualizado com sucesso!')
+            return redirect('dashboard:tipo_demanda_list')
+    else:
+        form = TipoDemandaForm(instance=tipo_demanda)
+    
+    return render(request, 'dashboard/tipo_demanda_form.html', {
+        'form': form,
+        'form_title': 'Editar Tipo de Demanda',
+        'button_text': 'Salvar'
+    })
+
+@login_required
+def tipo_demanda_delete(request, pk):
+    """Deletar tipo de demanda"""
+    tipo_demanda = get_object_or_404(TipoDemanda, pk=pk)
+    
+    if request.method == 'POST':
+        tipo_demanda.delete()
+        messages.success(request, 'Tipo de demanda excluído com sucesso!')
+        return redirect('dashboard:tipo_demanda_list')
+    
+    return render(request, 'dashboard/tipo_demanda_confirm_delete.html', {'tipo_demanda': tipo_demanda})

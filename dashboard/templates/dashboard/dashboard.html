@@ -364,11 +364,11 @@
         <i class="fas fa-plus"></i>
         Nova Tarefa
     </a>
-    <a href="#" class="quick-action-btn">
+    <a href="{% url 'dashboard:audiencia_create' %}" class="quick-action-btn">
         <i class="fas fa-calendar-plus"></i>
         Agendar Audiência
     </a>
-    <a href="#" class="quick-action-btn">
+    <a href="{% url 'dashboard:receita_create' %}" class="quick-action-btn">
         <i class="fas fa-receipt"></i>
         Lançar Receita
     </a>
@@ -560,9 +560,9 @@
                 <i class="fas fa-calendar-alt"></i>
                 Agenda
             </h5>
-            <button class="btn btn-new-task btn-sm">
+            <a href="{% url 'dashboard:task_create' %}" class="btn btn-new-task btn-sm">
                 <i class="fas fa-plus"></i> Nova Tarefa
-            </button>
+            </a>
         </div>
         <div class="card-body">
             {% if proximas_audiencias or tarefas_urgentes %}

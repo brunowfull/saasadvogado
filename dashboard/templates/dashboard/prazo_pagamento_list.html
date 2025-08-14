@@ -1,0 +1,45 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Prazos de Pagamento - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Prazos de Pagamento</h1>
+            <p class="text-muted">Gerencie os prazos de pagamento.</p>
+        </div>
+        <div>
+            <a href="{% url 'dashboard:prazo_pagamento_create' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Cadastrar Prazo</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Prazo</th>
+                    <th>Dias</th>
+                    <th>Data de Cadastro</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prazo_pagamento in prazos_pagamento %}
+                <tr>
+                    <td>{{ prazo_pagamento.nome }}</td>
+                    <td>{{ prazo_pagamento.dias }}</td>
+                    <td>{{ prazo_pagamento.data_cadastro|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'dashboard:prazo_pagamento_update' prazo_pagamento.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                        <a href="{% url 'dashboard:prazo_pagamento_delete' prazo_pagamento.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

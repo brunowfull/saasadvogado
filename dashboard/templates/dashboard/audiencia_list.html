@@ -1,0 +1,47 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Audiências - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Audiências</h1>
+            <p class="text-muted">Gerencie suas audiências.</p>
+        </div>
+        <div>
+            <a href="{% url 'dashboard:audiencia_create' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Agendar Audiência</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Processo</th>
+                    <th>Tipo</th>
+                    <th>Data e Hora</th>
+                    <th>Local</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for audiencia in audiencias %}
+                <tr>
+                    <td>{{ audiencia.processo.numero }} - {{ audiencia.processo.titulo }}</td>
+                    <td>{{ audiencia.get_tipo_display }}</td>
+                    <td>{{ audiencia.data_hora|date:"d/m/Y H:i" }}</td>
+                    <td>{{ audiencia.local }}</td>
+                    <td>
+                        <a href="{% url 'dashboard:audiencia_update' audiencia.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                        <a href="{% url 'dashboard:audiencia_delete' audiencia.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

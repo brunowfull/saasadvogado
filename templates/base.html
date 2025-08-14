@@ -396,15 +396,15 @@
                                             </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#">
+                                            <a class="nav-link {% if request.resolver_match.url_name == 'tipo_receita_list' %}active{% endif %}" href="{% url 'dashboard:tipo_receita_list' %}">
                                                 <i class="fas fa-tags"></i>
                                                 Tipos de Receita
                                             </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#">
+                                            <a class="nav-link {% if request.resolver_match.url_name == 'tipo_despesa_list' %}active{% endif %}" href="{% url 'dashboard:tipo_despesa_list' %}">
                                                 <i class="fas fa-receipt"></i>
-                                                Tipos de Despesas
+                                                Tipos de Despesa
                                             </a>
                                         </li>
                                         <li class="nav-item">
@@ -414,19 +414,19 @@
                                             </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#">
+                                            <a class="nav-link {% if request.resolver_match.url_name == 'forma_pagamento_list' %}active{% endif %}" href="{% url 'dashboard:forma_pagamento_list' %}">
                                                 <i class="fas fa-credit-card"></i>
                                                 Formas Pagamento
                                             </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#">
+                                            <a class="nav-link {% if request.resolver_match.url_name == 'prazo_pagamento_list' %}active{% endif %}" href="{% url 'dashboard:prazo_pagamento_list' %}">
                                                 <i class="fas fa-clock"></i>
                                                 Prazos Pagamento
                                             </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#">
+                                            <a class="nav-link {% if request.resolver_match.url_name == 'banco_list' %}active{% endif %}" href="{% url 'dashboard:banco_list' %}">
                                                 <i class="fas fa-university"></i>
                                                 Bancos
                                             </a>
@@ -442,7 +442,7 @@
                         <div class="nav-section-title">Financeiro</div>
                         <ul class="nav flex-column">
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'receitas' %}active{% endif %}" href="{% url 'dashboard:receitas' %}">
                                     <i class="fas fa-arrow-up text-success"></i>
                                     Receitas
                                 </a>
@@ -467,13 +467,13 @@
                         <div class="nav-section-title">Operacional</div>
                         <ul class="nav flex-column">
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-tasks"></i>
-                                    Tarefas
+                                <a class="nav-link {% if request.resolver_match.url_name == 'task_list' %}active{% endif %}" href="{% url 'dashboard:task_list' %}">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Calendário
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'audiencia_list' %}active{% endif %}" href="{% url 'dashboard:audiencia_list' %}">
                                     <i class="fas fa-gavel"></i>
                                     Audiências
                                 </a>
@@ -485,7 +485,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'processo_list' %}active{% endif %}" href="{% url 'dashboard:processo_list' %}">
                                     <i class="fas fa-folder-open"></i>
                                     Processos
                                 </a>
