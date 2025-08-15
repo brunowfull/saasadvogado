@@ -62,8 +62,25 @@ Contribuições são bem-vindas! Se você deseja contribuir, siga os passos abai
 
 ## Licença
 
-Este projeto não possui licença definida. Sinta-se à vontade para usá-lo como achar melhor.
+Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ## Autores
 
 - Bruno W. Full (brunowfull)
+
+## Estrutura do Repositório
+
+### Diretórios
+- **dashboard/**
+- **finance/**
+- **lawfirm_finance/**
+- **staticfiles/**
+- **templates/**
+- **users/**
+
+### Arquivos
+- `create_test_user.py`
+- `db.sqlite3`
+- `manage.py`
+- `package-lock.json`
+- `README.md`
