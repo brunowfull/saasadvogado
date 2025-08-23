@@ -1,103 +1,1039 @@
-{% extends 'base.html' %}
+{% extends 'dashboard/base.html' %}
 
-{% block title %}Clientes - LawFirm Finance{% endblock %}
+{% block title %}Clientes - {{ block.super }}{% endblock %}
 
 {% block content %}
+<div class="page-header">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2">Clientes</h1>
-        <a href="{% url 'dashboard:client_create' %}" class="btn btn-primary">Cadastrar Cliente</a>
-    </div>
-
-    <div class="d-flex justify-content-end mb-3">
-        <select class="form-select" style="width: 200px;" onchange="window.location.href=this.value">
-            <option value="?page_size=15" {% if page_size == 15 %}selected{% endif %}>15 por página</option>
-            <option value="?page_size=30" {% if page_size == 30 %}selected{% endif %}>30 por página</option>
-            <option value="?page_size=50" {% if page_size == 50 %}selected{% endif %}>50 por página</option>
-            <option value="?page_size=100" {% if page_size == 100 %}selected{% endif %}>100 por página</option>
-        </select>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Nº</th>
-                            <th>Nome</th>
-                            <th>Nome da Mãe</th>
-                            <th>Telefone</th>
-                            <th>CPF</th>
-                            <th>Data do Cadastro</th>
-                            <th>Cidade</th>
-                            <th>Estado</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for client in page_obj %}
-                        <tr>
-                            <td>{{ forloop.counter|stringformat:"03d" }}</td>
-                            <td>{{ client.nome }}</td>
-                            <td>{{ client.nome_mae|default:"-" }}</td>
-                            <td>{{ client.telefone }}</td>
-                            <td>{{ client.cpf_cnpj }}</td>
-                            <td>{{ client.data_cadastro|date:"d/m/Y" }}</td>
-                            <td>{{ client.cidade|default:"-" }}</td>
-                            <td>{{ client.estado|default:"-" }}</td>
-                            <td>
-                                {% if client.ativo %}
-                                    <span class="badge bg-success">Ativo</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Inativo</span>
-                                {% endif %}
-                                {% if client.area_cliente_ativa %}
-                                    <span class="badge bg-primary">Área ativa</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{% url 'dashboard:client_edit' client.id %}" class="btn btn-sm btn-warning">✎</a>
-                                <a href="{% url 'dashboard:client_financial' client.id %}" class="btn btn-sm btn-success">$</a>
-                                <a href="{% url 'dashboard:client_delete' client.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este cliente?');">🗑</a>
-                                <a href="{% url 'dashboard:client_detail' client.id %}" class="btn btn-sm btn-info">ℹ</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Pagination -->
-            {% if page_obj.has_other_pages %}
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&page_size={{ page_size }}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                    {% endif %}
-                    
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item"><a class="page-link" href="?page={{ num }}&page_size={{ page_size }}">{{ num }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                    
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&page_size={{ page_size }}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
+        <div>
+            <h1>Clientes</h1>
+            <p class="text-muted">Gerencie seus clientes.</p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clientModal">
+                <i class="fas fa-plus me-2"></i>Cadastrar Cliente
+            </button>
         </div>
     </div>
+</div>
+
+<!-- Filtro de itens por página -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex align-items-center">
+            <label class="me-2">Mostrar:</label>
+            <select name="page_size" class="form-select me-2" style="width: auto;" onchange="this.form.submit()">
+                <option value="15" {% if page_size == 15 %}selected{% endif %}>15</option>
+                <option value="30" {% if page_size == 30 %}selected{% endif %}>30</option>
+                <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+            </select>
+            <span class="text-muted">por página</span>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th width="60">Nº</th>
+                        <th>Nome</th>
+                        <th>Nome da Mãe</th>
+                        <th>Telefone</th>
+                        <th>CPF</th>
+                        <th>Data do Cadastro</th>
+                        <th>Cidade</th>
+                        <th>Estado</th>
+                        <th>Status</th>
+                        <th width="200">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in page_obj %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-secondary">
+                                {{ forloop.counter|add:page_obj.start_index|add:"-1"|stringformat:"03d" }}
+                            </span>
+                        </td>
+                        <td class="fw-semibold">{{ client.nome }}</td>
+                        <td class="text-muted">{{ client.nome_mae|default:"-" }}</td>
+                        <td>{{ client.telefone }}</td>
+                        <td>
+                            <span class="font-monospace">{{ client.cpf_cnpj }}</span>
+                        </td>
+                        <td>{{ client.data_cadastro|date:"d/m/Y" }}</td>
+                        <td>{{ client.cidade|default:"-" }}</td>
+                        <td>{{ client.estado|default:"-" }}</td>
+                        <td>
+                            {% if client.ativo %}
+                                <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inativo</span>
+                            {% endif %}
+                            {% if client.area_cliente_ativa %}
+                                <br><span class="badge bg-info mt-1">Área ativa</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="editClient({{ client.id }})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="showFinancial({{ client.id }})" title="Financeiro">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" onclick="deleteClient({{ client.id }}, '{{ client.nome|escapejs }}')" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-info" onclick="showClientData({{ client.id }})" title="Dados">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </button>
+                                {% if not client.area_cliente_ativa %}
+                                <button type="button" class="btn btn-outline-warning" onclick="activateClientArea({{ client.id }})" title="Ativar Área">
+                                    <i class="fas fa-key"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-users fa-3x mb-3"></i>
+                                <p>Nenhum cliente cadastrado</p>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clientModal">
+                                    <i class="fas fa-plus me-2"></i>Cadastrar Primeiro Cliente
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Navegação de páginas" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&page_size={{ page_size }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}&page_size={{ page_size }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&page_size={{ page_size }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Cadastrar Cliente -->
+<div class="modal fade" id="clientModal" tabindex="-1" aria-labelledby="clientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clientModalLabel">Cadastrar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="clientForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Nome *</label>
+                                <input type="text" class="form-control" id="nome" name="nome" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nome_mae" class="form-label">Nome da Mãe</label>
+                                <input type="text" class="form-control" id="nome_mae" name="nome_mae">
+                            </div>
+                            <div class="mb-3">
+                                <label for="cpf_cnpj" class="form-label">CPF/CNPJ *</label>
+                                <input type="text" class="form-control" id="cpf_cnpj" name="cpf_cnpj" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="telefone" class="form-label">Telefone *</label>
+                                <input type="text" class="form-control" id="telefone" name="telefone" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">E-mail</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="endereco" class="form-label">Endereço</label>
+                                <textarea class="form-control" id="endereco" name="endereco" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cidade" class="form-label">Cidade</label>
+                                <input type="text" class="form-control" id="cidade" name="cidade">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado" class="form-label">Estado</label>
+                                <select class="form-select" id="estado" name="estado">
+                                    <option value="">Selecione...</option>
+                                    <option value="AC">AC - Acre</option>
+                                    <option value="AL">AL - Alagoas</option>
+                                    <option value="AP">AP - Amapá</option>
+                                    <option value="AM">AM - Amazonas</option>
+                                    <option value="BA">BA - Bahia</option>
+                                    <option value="CE">CE - Ceará</option>
+                                    <option value="DF">DF - Distrito Federal</option>
+                                    <option value="ES">ES - Espírito Santo</option>
+                                    <option value="GO">GO - Goiás</option>
+                                    <option value="MA">MA - Maranhão</option>
+                                    <option value="MT">MT - Mato Grosso</option>
+                                    <option value="MS">MS - Mato Grosso do Sul</option>
+                                    <option value="MG">MG - Minas Gerais</option>
+                                    <option value="PA">PA - Pará</option>
+                                    <option value="PB">PB - Paraíba</option>
+                                    <option value="PR">PR - Paraná</option>
+                                    <option value="PE">PE - Pernambuco</option>
+                                    <option value="PI">PI - Piauí</option>
+                                    <option value="RJ">RJ - Rio de Janeiro</option>
+                                    <option value="RN">RN - Rio Grande do Norte</option>
+                                    <option value="RS">RS - Rio Grande do Sul</option>
+                                    <option value="RO">RO - Rondônia</option>
+                                    <option value="RR">RR - Roraima</option>
+                                    <option value="SC">SC - Santa Catarina</option>
+                                    <option value="SP">SP - São Paulo</option>
+                                    <option value="SE">SE - Sergipe</option>
+                                    <option value="TO">TO - Tocantins</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="ativo" name="ativo" checked>
+                                <label class="form-check-label" for="ativo">Cliente Ativo</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Cliente -->
+<div class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editClientModalLabel">Editar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editClientForm">
+                {% csrf_token %}
+                <input type="hidden" id="edit_client_id" name="client_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_nome" class="form-label">Nome *</label>
+                                <input type="text" class="form-control" id="edit_nome" name="nome" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_nome_mae" class="form-label">Nome da Mãe</label>
+                                <input type="text" class="form-control" id="edit_nome_mae" name="nome_mae">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_cpf_cnpj" class="form-label">CPF/CNPJ *</label>
+                                <input type="text" class="form-control" id="edit_cpf_cnpj" name="cpf_cnpj" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_telefone" class="form-label">Telefone *</label>
+                                <input type="text" class="form-control" id="edit_telefone" name="telefone" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_email" class="form-label">E-mail</label>
+                                <input type="email" class="form-control" id="edit_email" name="email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_endereco" class="form-label">Endereço</label>
+                                <textarea class="form-control" id="edit_endereco" name="endereco" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_cidade" class="form-label">Cidade</label>
+                                <input type="text" class="form-control" id="edit_cidade" name="cidade">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_estado" class="form-label">Estado</label>
+                                <select class="form-select" id="edit_estado" name="estado">
+                                    <option value="">Selecione...</option>
+                                    <option value="AC">AC - Acre</option>
+                                    <option value="AL">AL - Alagoas</option>
+                                    <option value="AP">AP - Amapá</option>
+                                    <option value="AM">AM - Amazonas</option>
+                                    <option value="BA">BA - Bahia</option>
+                                    <option value="CE">CE - Ceará</option>
+                                    <option value="DF">DF - Distrito Federal</option>
+                                    <option value="ES">ES - Espírito Santo</option>
+                                    <option value="GO">GO - Goiás</option>
+                                    <option value="MA">MA - Maranhão</option>
+                                    <option value="MT">MT - Mato Grosso</option>
+                                    <option value="MS">MS - Mato Grosso do Sul</option>
+                                    <option value="MG">MG - Minas Gerais</option>
+                                    <option value="PA">PA - Pará</option>
+                                    <option value="PB">PB - Paraíba</option>
+                                    <option value="PR">PR - Paraná</option>
+                                    <option value="PE">PE - Pernambuco</option>
+                                    <option value="PI">PI - Piauí</option>
+                                    <option value="RJ">RJ - Rio de Janeiro</option>
+                                    <option value="RN">RN - Rio Grande do Norte</option>
+                                    <option value="RS">RS - Rio Grande do Sul</option>
+                                    <option value="RO">RO - Rondônia</option>
+                                    <option value="RR">RR - Roraima</option>
+                                    <option value="SC">SC - Santa Catarina</option>
+                                    <option value="SP">SP - São Paulo</option>
+                                    <option value="SE">SE - Sergipe</option>
+                                    <option value="TO">TO - Tocantins</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="edit_ativo" name="ativo">
+                                <label class="form-check-label" for="edit_ativo">Cliente Ativo</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Dados do Cliente -->
+<div class="modal fade" id="clientDataModal" tabindex="-1" aria-labelledby="clientDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clientDataModalLabel">Dados do Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="clientDataContent">
+                <!-- Conteúdo será carregado dinamicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Financeiro do Cliente -->
+<div class="modal fade" id="financialModal" tabindex="-1" aria-labelledby="financialModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="financialModalLabel">Informações Financeiras</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="financialContent">
+                <!-- Conteúdo será carregado dinamicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmação de Exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Deseja realmente excluir o cliente <strong id="deleteClientName"></strong>?</p>
+                <p class="text-muted small">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ativar Área do Cliente -->
+<div class="modal fade" id="activateAreaModal" tabindex="-1" aria-labelledby="activateAreaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="activateAreaModalLabel">Ativar Área do Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>A senha foi gerada automaticamente para o cliente:</p>
+                <div class="alert alert-info">
+                    <h6>Dados de Acesso:</h6>
+                    <p><strong>Login:</strong> <span id="clientCPF"></span></p>
+                    <p><strong>Senha:</strong> <span id="generatedPassword" class="font-monospace"></span></p>
+                </div>
+                <p class="text-muted small">O cliente poderá acessar sua área utilizando o CPF como login e a senha acima.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Adicionar Pagamento -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1" aria-labelledby="addPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPaymentModalLabel">Adicionar Pagamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPaymentForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Receita</label>
+                                <input type="text" class="form-control" id="paymentReceita" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Valor Restante</label>
+                                <input type="text" class="form-control" id="paymentValorRestante" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="paymentValor" class="form-label">Valor do Pagamento *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="paymentValor" name="valor_pagamento" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="paymentData" class="form-label">Data do Pagamento</label>
+                                <input type="date" class="form-control" id="paymentData" name="data_pagamento">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="paymentForma" class="form-label">Forma de Pagamento</label>
+                                <select class="form-select" id="paymentForma" name="forma_pagamento">
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="paymentBanco" class="form-label">Banco</label>
+                                <select class="form-select" id="paymentBanco" name="banco">
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="paymentObservacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="paymentObservacoes" name="observacoes" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="addPaymentForm" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Adicionar Pagamento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variáveis globais
+let currentClientId = null;
+
+// Função para obter o token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// Configurar AJAX com CSRF token
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
+});
+
+// Salvar cliente
+$('#clientForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitBtn = $(this).find('button[type="submit"]');
+    submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Salvando...').prop('disabled', true);
+    
+    $.ajax({
+        url: '{% url "dashboard:client_create" %}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success) {
+                showAlert('Cliente cadastrado com sucesso!', 'success');
+                $('#clientModal').modal('hide');
+                location.reload();
+            } else {
+                showAlert('Erro ao cadastrar cliente: ' + JSON.stringify(response.errors), 'error');
+            }
+        },
+        error: function() {
+            showAlert('Erro ao processar solicitação', 'error');
+        },
+        complete: function() {
+            submitBtn.html('Salvar').prop('disabled', false);
+        }
+    });
+});
+
+// Editar cliente
+function editClient(clientId) {
+    $.ajax({
+        url: '{% url "dashboard:client_detail" 0 %}'.replace('0', clientId),
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success) {
+                const client = response.client;
+                $('#edit_client_id').val(client.id);
+                $('#edit_nome').val(client.nome);
+                $('#edit_nome_mae').val(client.nome_mae || '');
+                $('#edit_cpf_cnpj').val(client.cpf_cnpj);
+                $('#edit_telefone').val(client.telefone);
+                $('#edit_email').val(client.email);
+                $('#edit_endereco').val(client.endereco || '');
+                $('#edit_cidade').val(client.cidade || '');
+                $('#edit_estado').val(client.estado || '');
+                $('#edit_ativo').prop('checked', client.ativo);
+                
+                $('#editClientModal').modal('show');
+            } else {
+                showAlert('Erro ao carregar dados do cliente', 'error');
+            }
+        },
+        error: function() {
+            showAlert('Erro ao processar solicitação', 'error');
+        }
+    });
+}
+
+// Salvar edição do cliente
+$('#editClientForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    const clientId = $('#edit_client_id').val();
+    const formData = new FormData(this);
+    const submitBtn = $(this).find('button[type="submit"]');
+    submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Salvando...').prop('disabled', true);
+    
+    $.ajax({
+        url: '{% url "dashboard:client_edit" 0 %}'.replace('0', clientId),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success) {
+                showAlert('Cliente atualizado com sucesso!', 'success');
+                $('#editClientModal').modal('hide');
+                location.reload();
+            } else {
+                showAlert('Erro ao atualizar cliente: ' + JSON.stringify(response.errors), 'error');
+            }
+        },
+        error: function() {
+            showAlert('Erro ao processar solicitação', 'error');
+        },
+        complete: function() {
+            submitBtn.html('Salvar').prop('disabled', false);
+        }
+    });
+});
+
+// Mostrar dados do cliente
+function showClientData(clientId) {
+    $('#clientDataContent').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>');
+    $('#clientDataModal').modal('show');
+    
+    $.ajax({
+        url: '{% url "dashboard:client_detail" 0 %}'.replace('0', clientId),
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success) {
+                const client = response.client;
+                $('#clientDataContent').html(`
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr><th>Nome:</th><td>${client.nome}</td></tr>
+                                <tr><th>Nome da Mãe:</th><td>${client.nome_mae || '-'}</td></tr>
+                                <tr><th>CPF/CNPJ:</th><td>${client.cpf_cnpj}</td></tr>
+                                <tr><th>Telefone:</th><td>${client.telefone}</td></tr>
+                                <tr><th>E-mail:</th><td>${client.email || '-'}</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr><th>Endereço:</th><td>${client.endereco || '-'}</td></tr>
+                                <tr><th>Cidade:</th><td>${client.cidade || '-'}</td></tr>
+                                <tr><th>Estado:</th><td>${client.estado || '-'}</td></tr>
+                                <tr><th>Data Cadastro:</th><td>${client.data_cadastro || '-'}</td></tr>
+                                <tr><th>Status:</th><td>
+                                    ${client.ativo ? '<span class="badge bg-success">Ativo</span>' : '<span class="badge bg-secondary">Inativo</span>'}
+                                    ${client.area_cliente_ativa ? '<br><span class="badge bg-info mt-1">Área ativa</span>' : ''}
+                                </td></tr>
+                            </table>
+                        </div>
+                    </div>
+                `);
+            } else {
+                $('#clientDataContent').html('<div class="alert alert-danger">Erro ao carregar dados do cliente</div>');
+            }
+        },
+        error: function() {
+            $('#clientDataContent').html('<div class="alert alert-danger">Erro ao processar solicitação</div>');
+        }
+    });
+}
+
+// Mostrar informações financeiras
+function showFinancial(clientId) {
+    $('#financialContent').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>');
+    $('#financialModal').modal('show');
+    
+    $.ajax({
+        url: '{% url "dashboard:client_financial" 0 %}'.replace('0', clientId),
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success) {
+                let content = `
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h6>Total Receitas</h6>
+                                    <h4>R$ ${response.total_receitas || '0,00'}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h6>Total Recebido</h6>
+                                    <h4>R$ ${response.total_recebido || '0,00'}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h6>Total Restante</h6>
+                                    <h4>R$ ${response.total_restante || '0,00'}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h6>Taxa Recebimento</h6>
+                                    <h4>${response.total_receitas && response.total_receitas !== '0,00' ? Math.round((parseFloat(response.total_recebido.replace('.', '').replace(',', '.')) / parseFloat(response.total_receitas.replace('.', '').replace(',', '.'))) * 100) + '%' : '0%'}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (response.receitas && response.receitas.length > 0) {
+                    content += `
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Histórico de Receitas</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Descrição</th>
+                                                <th>Processo</th>
+                                                <th>Valor Total</th>
+                                                <th>Valor Recebido</th>
+                                                <th>Valor Restante</th>
+                                                <th>Vencimento</th>
+                                                <th>Status</th>
+                                                <th>Forma Pagamento</th>
+                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                    `;
+                    
+                    response.receitas.forEach(receita => {
+                        content += `
+                            <tr>
+                                <td class="text-truncate" style="max-width: 200px;">${receita.descricao}</td>
+                                <td class="font-monospace text-muted small">${receita.processo}</td>
+                                <td class="font-monospace">R$ ${receita.valor_total}</td>
+                                <td class="font-monospace text-success">R$ ${receita.valor_recebido}</td>
+                                <td class="font-monospace ${parseFloat(receita.valor_restante.replace('.', '').replace(',', '.')) > 0 ? 'text-danger' : 'text-muted'}">R$ ${receita.valor_restante}</td>
+                                <td class="text-muted small">${receita.data_vencimento}</td>
+                                <td>
+                                    <span class="badge bg-${receita.status_class}">${receita.status}</span>
+                                </td>
+                                <td class="text-muted small">${receita.forma_pagamento}</td>
+                                <td>
+                                    ${parseFloat(receita.valor_restante.replace('.', '').replace(',', '.')) > 0 ? 
+                                        `<button type="button" class="btn btn-sm btn-outline-success" onclick="showAddPaymentModal(${receita.id}, '${receita.descricao}', '${receita.valor_restante}')" title="Adicionar Pagamento">
+                                            <i class="fas fa-plus"></i>
+                                        </button>` : 
+                                        '<span class="text-muted">-</span>'
+                                    }
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    content += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    content += `
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhuma receita encontrada</h5>
+                            <p class="text-muted">Este cliente não possui receitas cadastradas.</p>
+                        </div>
+                    `;
+                }
+                
+                $('#financialContent').html(content);
+            } else {
+                $('#financialContent').html('<div class="alert alert-danger">Erro ao carregar informações financeiras</div>');
+            }
+        },
+        error: function() {
+            $('#financialContent').html('<div class="alert alert-danger">Erro ao processar solicitação</div>');
+        }
+    });
+}
+
+// Excluir cliente
+function deleteClient(clientId, clientName) {
+    currentClientId = clientId;
+    $('#deleteClientName').text(clientName);
+    $('#deleteModal').modal('show');
+}
+
+$('#confirmDeleteBtn').on('click', function() {
+    if (!currentClientId) return;
+    
+    const btn = $(this);
+    btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Excluindo...').prop('disabled', true);
+    
+    $.ajax({
+        url: '{% url "dashboard:client_delete" 0 %}'.replace('0', currentClientId),
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success) {
+                showAlert('Cliente excluído com sucesso!', 'success');
+                $('#deleteModal').modal('hide');
+                location.reload();
+            } else {
+                showAlert('Erro ao excluir cliente', 'error');
+            }
+        },
+        error: function() {
+            showAlert('Erro ao processar solicitação', 'error');
+        },
+        complete: function() {
+            btn.html('Excluir').prop('disabled', false);
+            currentClientId = null;
+        }
+    });
+});
+
+// Ativar área do cliente
+function activateClientArea(clientId) {
+    $.ajax({
+        url: '{% url "dashboard:activate_client_area" 0 %}'.replace('0', clientId),
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#clientCPF').text(response.cpf);
+                $('#generatedPassword').text(response.password);
+                $('#activateAreaModal').modal('show');
+                
+                // Recarregar página após fechar o modal
+                $('#activateAreaModal').on('hidden.bs.modal', function() {
+                    location.reload();
+                });
+            } else {
+                showAlert('Erro ao ativar área do cliente', 'error');
+            }
+        },
+        error: function() {
+            showAlert('Erro ao processar solicitação', 'error');
+        }
+    });
+}
+
+// Função para mostrar alertas
+function showAlert(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    $('body').append(alertHtml);
+    
+    setTimeout(() => {
+        $('.alert').fadeOut();
+    }, 5000);
+}
+
+// Limpar modais quando fechados
+$('#clientModal').on('hidden.bs.modal', function() {
+    $('#clientForm')[0].reset();
+});
+
+$('#editClientModal').on('hidden.bs.modal', function() {
+    $('#editClientForm')[0].reset();
+});
+
+$('#deleteModal').on('hidden.bs.modal', function() {
+    currentClientId = null;
+    $('#deleteClientName').text('');
+});
+
+// Variables for payment modal
+let currentReceitaId = null;
+
+// Show add payment modal
+function showAddPaymentModal(receitaId, descricao, valorRestante) {
+    currentReceitaId = receitaId;
+    $('#paymentReceita').val(descricao);
+    $('#paymentValorRestante').val('R$ ' + valorRestante);
+    $('#paymentData').val(new Date().toISOString().split('T')[0]);
+    
+    // Load payment methods and banks
+    loadPaymentOptions();
+    
+    $('#addPaymentModal').modal('show');
+}
+
+// Load payment options
+function loadPaymentOptions() {
+    // Load payment methods
+    $.ajax({
+        url: '{% url "dashboard:get_formas_pagamento_ajax" %}',
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success) {
+                let options = '<option value="">Selecione...</option>';
+                response.formas_pagamento.forEach(function(forma) {
+                    options += `<option value="${forma.id}">${forma.nome}</option>`;
+                });
+                $('#paymentForma').html(options);
+            } else {
+                console.error('Erro ao carregar formas de pagamento:', response.message);
+                $('#paymentForma').html('<option value="">Erro ao carregar...</option>');
+            }
+        },
+        error: function() {
+            console.error('Erro na requisição AJAX para formas de pagamento');
+            $('#paymentForma').html('<option value="">Erro ao carregar...</option>');
+        }
+    });
+    
+    // Load banks
+    $.ajax({
+        url: '{% url "dashboard:get_payment_options" %}',
+        type: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success && response.bancos) {
+                let options = '<option value="">Selecione...</option>';
+                response.bancos.forEach(function(banco) {
+                    options += `<option value="${banco.id}">${banco.nome}</option>`;
+                });
+                $('#paymentBanco').html(options);
+            } else {
+                console.error('Erro ao carregar bancos:', response.message);
+                $('#paymentBanco').html('<option value="">Erro ao carregar...</option>');
+            }
+        },
+        error: function() {
+            console.error('Erro na requisição AJAX para bancos');
+            $('#paymentBanco').html('<option value="">Erro ao carregar...</option>');
+        }
+    });
+}
+
+// Handle add payment form submission
+$('#addPaymentForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    if (!currentReceitaId) return;
+    
+    const formData = new FormData(this);
+    const submitBtn = $(this).find('button[type="submit"]');
+    submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Processando...').prop('disabled', true);
+    
+    $.ajax({
+        url: '{% url "dashboard:add_partial_payment" 0 %}'.replace('0', currentReceitaId),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(response) {
+            if (response.success) {
+                showAlert(response.message, 'success');
+                $('#addPaymentModal').modal('hide');
+                
+                // Refresh financial data if financial modal is open
+                if ($('#financialModal').hasClass('show')) {
+                    const clientId = $('#financialModal').data('client-id');
+                    if (clientId) {
+                        showFinancial(clientId);
+                    }
+                }
+            } else {
+                showAlert('Erro ao adicionar pagamento: ' + response.message, 'error');
+            }
+        },
+        error: function() {
+            showAlert('Erro ao processar pagamento', 'error');
+        },
+        complete: function() {
+            submitBtn.html('<i class="fas fa-plus me-2"></i>Adicionar Pagamento').prop('disabled', false);
+        }
+    });
+});
+
+// Store client ID in financial modal for refresh
+$('#financialModal').on('show.bs.modal', function(e) {
+    const button = $(e.relatedTarget);
+    const clientId = button.data('client-id') || currentClientId;
+    $(this).data('client-id', clientId);
+});
+
+// Reset payment form when modal is hidden
+$('#addPaymentModal').on('hidden.bs.modal', function() {
+    $('#addPaymentForm')[0].reset();
+    currentReceitaId = null;
+});
+
+</script>
 {% endblock %}

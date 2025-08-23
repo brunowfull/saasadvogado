@@ -263,18 +263,20 @@ class TipoDespesaForm(forms.ModelForm):
 class FormaPagamentoForm(forms.ModelForm):
     class Meta:
         model = FormaPagamento
-        fields = ['nome', 'data_cadastro']
+        fields = ['nome', 'ativo', 'data_cadastro']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da forma de pagamento'}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'data_cadastro': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }
 
 class BancoForm(forms.ModelForm):
     class Meta:
         model = Banco
-        fields = ['nome', 'data_cadastro']
+        fields = ['nome', 'ativo', 'data_cadastro']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do banco'}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'data_cadastro': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }
 

@@ -22,68 +22,181 @@ from .forms import (
 
 @login_required
 def dashboard_view(request):
-    """View principal do dashboard com métricas e dados"""
+    """View principal do dashboard com métricas e dados avançados"""
     
     # Verificar se o usuário tem perfil de advogado
     try:
         advogado = request.user
     except:
-        # Se não tem perfil de advogado, criar um básico ou redirecionar
         messages.warning(request, 'Perfil de advogado não encontrado. Entre em contato com o administrador.')
-        # Você pode criar um advogado básico ou redirecionar para uma página de configuração
     
-    # Filtros
+    # Filtros de período
     periodo = int(request.GET.get('periodo', 30))
     data_inicio = timezone.now() - timedelta(days=periodo)
+    hoje = timezone.now().date()
+    inicio_mes = hoje.replace(day=1)
+    mes_anterior = (inicio_mes - timedelta(days=1)).replace(day=1)
     
-    # Métricas principais
+    # === MÉTRICAS PRINCIPAIS ===
+    
+    # Clientes
     total_clientes = Cliente.objects.filter(ativo=True).count()
-    total_processos = Processo.objects.count()
+    clientes_novos = Cliente.objects.filter(
+        data_cadastro__gte=data_inicio,
+        ativo=True
+    ).count()
+    clientes_com_processos = Cliente.objects.filter(
+        processo__isnull=False,
+        ativo=True
+    ).distinct().count()
     
-    # Tarefas
-    tarefas_pendentes = Task.objects.filter(
-        status='pendente',
-        data_inicio__gte=data_inicio
+    # Processos
+    total_processos = Processo.objects.count()
+    processos_ativos = Processo.objects.filter(status='ativo').count()
+    processos_finalizados_mes = Processo.objects.filter(
+        status='finalizado',
+        data_fim__gte=inicio_mes
     ).count()
     
-    # Audiências pendentes
+    # Tarefas
+    tarefas_pendentes = Task.objects.filter(status='pendente').count()
+    tarefas_atrasadas = Task.objects.filter(
+        status='pendente',
+        data_inicio__lt=timezone.now()
+    ).count()
+    tarefas_concluidas_mes = Task.objects.filter(
+        status='concluida',
+        data_atualizacao__gte=inicio_mes
+    ).count()
+    
+    # Audiências
     audiencias_pendentes = Audiencia.objects.filter(
         data_hora__gte=timezone.now(),
         data_hora__lte=timezone.now() + timedelta(days=30)
     ).count()
-    
-    # Publicações não lidas
-    publicacoes_nao_lidas = Publicacao.objects.filter(
-        lida=False,
-        data_publicacao__gte=data_inicio
+    audiencias_hoje = Audiencia.objects.filter(
+        data_hora__date=hoje
+    ).count()
+    audiencias_semana = Audiencia.objects.filter(
+        data_hora__gte=timezone.now(),
+        data_hora__lte=timezone.now() + timedelta(days=7)
     ).count()
     
-    # Financeiro do mês
-    hoje = timezone.now().date()
-    inicio_mes = hoje.replace(day=1)
+    # Publicações
+    publicacoes_nao_lidas = Publicacao.objects.filter(lida=False).count()
+    publicacoes_mes = Publicacao.objects.filter(
+        data_publicacao__gte=inicio_mes
+    ).count()
     
+    # === MÉTRICAS FINANCEIRAS AVANÇADAS ===
+    
+    # Receitas do mês atual
     receitas_mes = Receita.objects.filter(
         data_vencimento__gte=inicio_mes,
         data_vencimento__lte=hoje
     ).aggregate(total=Sum('valor_total'))['total'] or Decimal('0.00')
     
+    receitas_pagas_mes = Receita.objects.filter(
+        data_recebimento__gte=inicio_mes,
+        data_recebimento__lte=hoje
+    ).aggregate(total=Sum('valor_recebido'))['total'] or Decimal('0.00')
+    
+    receitas_pendentes = Receita.objects.filter(
+        pago=False,
+        data_vencimento__lte=hoje
+    ).aggregate(total=Sum('valor_total'))['total'] or Decimal('0.00')
+    
+    receitas_vencidas = Receita.objects.filter(
+        pago=False,
+        data_vencimento__lt=hoje
+    ).aggregate(total=Sum('valor_total'))['total'] or Decimal('0.00')
+    
+    # Receitas do mês anterior para comparação
+    receitas_mes_anterior = Receita.objects.filter(
+        data_vencimento__gte=mes_anterior,
+        data_vencimento__lt=inicio_mes
+    ).aggregate(total=Sum('valor_total'))['total'] or Decimal('0.00')
+    
+    # Despesas do mês
     despesas_mes = Despesa.objects.filter(
         data_vencimento__gte=inicio_mes,
         data_vencimento__lte=hoje
     ).aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
     
-    saldo_mes = receitas_mes - despesas_mes
+    despesas_pagas_mes = Despesa.objects.filter(
+        data_pagamento__gte=inicio_mes,
+        data_pagamento__lte=hoje,
+        pago=True
+    ).aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
     
-    # Clientes ativos (novos no período)
-    clientes_novos = Cliente.objects.filter(
-        data_cadastro__gte=data_inicio,
+    # Despesas do mês anterior para comparação
+    despesas_mes_anterior = Despesa.objects.filter(
+        data_vencimento__gte=mes_anterior,
+        data_vencimento__lt=inicio_mes
+    ).aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
+    
+    # Cálculos de saldo e variação
+    saldo_mes = receitas_pagas_mes - despesas_pagas_mes
+    saldo_mes_anterior = receitas_mes_anterior - despesas_mes_anterior
+    
+    # Cálculo da variação percentual
+    variacao_receitas = 0
+    if receitas_mes_anterior > 0:
+        variacao_receitas = ((receitas_mes - receitas_mes_anterior) / receitas_mes_anterior) * 100
+    
+    variacao_despesas = 0
+    if despesas_mes_anterior > 0:
+        variacao_despesas = ((despesas_mes - despesas_mes_anterior) / despesas_mes_anterior) * 100
+    
+    variacao_saldo = 0
+    if saldo_mes_anterior != 0:
+        variacao_saldo = ((saldo_mes - saldo_mes_anterior) / abs(saldo_mes_anterior)) * 100
+    
+    # === DADOS PARA GRÁFICOS ===
+    
+    # Distribuição de processos por status
+    processos_por_status = list(Processo.objects.values('status').annotate(
+        count=Count('id')
+    ))
+    
+    # Receitas vs Despesas últimos 6 meses
+    receitas_despesas_meses = []
+    for i in range(6):
+        mes_ref = hoje.replace(day=1) - timedelta(days=30*i)
+        mes_fim = (mes_ref.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+        
+        receitas = Receita.objects.filter(
+            data_vencimento__gte=mes_ref,
+            data_vencimento__lte=mes_fim
+        ).aggregate(total=Sum('valor_total'))['total'] or 0
+        
+        despesas = Despesa.objects.filter(
+            data_vencimento__gte=mes_ref,
+            data_vencimento__lte=mes_fim
+        ).aggregate(total=Sum('valor'))['total'] or 0
+        
+        receitas_despesas_meses.append({
+            'mes': mes_ref.strftime('%b/%Y'),
+            'receitas': float(receitas),
+            'despesas': float(despesas)
+        })
+    
+    receitas_despesas_meses.reverse()  # Ordem cronológica
+    
+    # Top 5 clientes por receita
+    top_clientes = Cliente.objects.annotate(
+        total_receitas=Sum('receita__valor_total')
+    ).filter(
+        total_receitas__isnull=False,
         ativo=True
-    ).count()
+    ).order_by('-total_receitas')[:5]
+    
+    # === ATIVIDADES E AGENDA ===
     
     # Atividades recentes
     atividades_recentes = AtividadeRecente.objects.select_related(
         'usuario', 'cliente', 'processo'
-    )[:10]
+    ).order_by('-data_criacao')[:10]
     
     # Próximas audiências
     proximas_audiencias = Audiencia.objects.filter(
@@ -95,27 +208,72 @@ def dashboard_view(request):
         status__in=['pendente', 'em_andamento'],
         prioridade__in=['alta', 'urgente'],
         data_inicio__lte=timezone.now() + timedelta(days=7)
-    ).select_related('cliente', 'processo')[:5]
+    ).select_related('cliente', 'processo').order_by('data_inicio')[:5]
     
-    # Estatísticas para gráficos
-    processos_por_status = Processo.objects.values('status').annotate(
-        count=Count('id')
-    )
+    # Próximos vencimentos de receitas
+    proximos_vencimentos = Receita.objects.filter(
+        pago=False,
+        data_vencimento__gte=hoje,
+        data_vencimento__lte=hoje + timedelta(days=30)
+    ).select_related('cliente').order_by('data_vencimento')[:10]
+    
+    # Taxa de conversão de clientes
+    taxa_conversao = 0
+    if total_clientes > 0:
+        taxa_conversao = (clientes_com_processos / total_clientes) * 100
+    
+    # Ticket médio
+    ticket_medio = 0
+    if total_clientes > 0 and receitas_mes > 0:
+        ticket_medio = receitas_mes / total_clientes
     
     context = {
+        # Métricas básicas
         'total_clientes': total_clientes,
         'total_processos': total_processos,
+        'processos_ativos': processos_ativos,
         'tarefas_pendentes': tarefas_pendentes,
+        'tarefas_atrasadas': tarefas_atrasadas,
         'audiencias_pendentes': audiencias_pendentes,
+        'audiencias_hoje': audiencias_hoje,
+        'audiencias_semana': audiencias_semana,
         'publicacoes_nao_lidas': publicacoes_nao_lidas,
+        
+        # Métricas financeiras
         'receitas_mes': receitas_mes,
+        'receitas_pagas_mes': receitas_pagas_mes,
+        'receitas_pendentes': receitas_pendentes,
+        'receitas_vencidas': receitas_vencidas,
         'despesas_mes': despesas_mes,
+        'despesas_pagas_mes': despesas_pagas_mes,
         'saldo_mes': saldo_mes,
+        
+        # Variações percentuais
+        'variacao_receitas': round(variacao_receitas, 1),
+        'variacao_despesas': round(variacao_despesas, 1),
+        'variacao_saldo': round(variacao_saldo, 1),
+        
+        # Métricas calculadas
         'clientes_novos': clientes_novos,
+        'clientes_com_processos': clientes_com_processos,
+        'taxa_conversao': round(taxa_conversao, 1),
+        'ticket_medio': ticket_medio,
+        'processos_finalizados_mes': processos_finalizados_mes,
+        'tarefas_concluidas_mes': tarefas_concluidas_mes,
+        'publicacoes_mes': publicacoes_mes,
+        
+        # Dados para gráficos
+        'processos_por_status': processos_por_status,
+        'receitas_despesas_meses': receitas_despesas_meses,
+        'top_clientes': top_clientes,
+        
+        # Listas
         'atividades_recentes': atividades_recentes,
         'proximas_audiencias': proximas_audiencias,
         'tarefas_urgentes': tarefas_urgentes,
-        'processos_por_status': list(processos_por_status),
+        'proximos_vencimentos': proximos_vencimentos,
+        
+        # Formulário de filtro
         'filter_form': DashboardFilterForm(request.GET),
     }
     
@@ -202,11 +360,38 @@ def processo_list(request):
 def processo_create(request):
     """Criar novo processo"""
     if request.method == 'POST':
-        form = ProcessoForm(request.POST)
-        if form.is_valid():
-            processo = form.save()
-            messages.success(request, 'Processo criado com sucesso!')
-            return redirect('dashboard:processo_list')
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+            form = ProcessoForm(request.POST)
+            if form.is_valid():
+                processo = form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='processo_criado',
+                    descricao=f'Novo processo criado: {processo.numero} - {processo.titulo}',
+                    usuario=request.user,
+                    processo=processo,
+                    cliente=processo.cliente
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'process_id': processo.id,
+                    'message': 'Processo criado com sucesso!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+        else:
+            # Regular form submission
+            form = ProcessoForm(request.POST)
+            if form.is_valid():
+                processo = form.save()
+                messages.success(request, 'Processo criado com sucesso!')
+                return redirect('dashboard:processo_list')
     else:
         form = ProcessoForm()
     return render(request, 'dashboard/processo_form.html', {'form': form, 'title': 'Novo Processo'})
@@ -216,14 +401,69 @@ def processo_update(request, pk):
     """Atualizar processo"""
     processo = get_object_or_404(Processo, pk=pk)
     if request.method == 'POST':
-        form = ProcessoForm(request.POST, instance=processo)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Processo atualizado com sucesso!')
-            return redirect('dashboard:processo_list')
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+            form = ProcessoForm(request.POST, instance=processo)
+            if form.is_valid():
+                form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='processo_atualizado',
+                    descricao=f'Processo atualizado: {processo.numero} - {processo.titulo}',
+                    usuario=request.user,
+                    processo=processo,
+                    cliente=processo.cliente
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Processo atualizado com sucesso!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+        else:
+            # Regular form submission
+            form = ProcessoForm(request.POST, instance=processo)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Processo atualizado com sucesso!')
+                return redirect('dashboard:processo_list')
     else:
         form = ProcessoForm(instance=processo)
     return render(request, 'dashboard/processo_form.html', {'form': form, 'title': 'Editar Processo'})
+
+@login_required
+def processo_detail(request, pk):
+    """Detalhes do processo"""
+    processo = get_object_or_404(Processo, pk=pk)
+    
+    # Check if it's an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+        return JsonResponse({
+            'success': True,
+            'process': {
+                'id': processo.id,
+                'numero': processo.numero,
+                'titulo': processo.titulo,
+                'descricao': processo.descricao,
+                'status': processo.status,
+                'data_inicio': processo.data_inicio.strftime('%Y-%m-%d'),
+                'data_fim': processo.data_fim.strftime('%Y-%m-%d') if processo.data_fim else None,
+                'valor_causa': float(processo.valor_causa) if processo.valor_causa else None,
+                'tribunal': processo.tribunal,
+                'vara': processo.vara,
+                'cliente_id': processo.cliente.id,
+                'advogado_responsavel_id': processo.advogado_responsavel.id,
+            }
+        })
+    
+    return render(request, 'dashboard/processo_detail.html', {
+        'processo': processo
+    })
 
 @login_required
 def processo_delete(request, pk):
@@ -249,9 +489,9 @@ from django.core.paginator import Paginator
 @login_required
 def cliente_list(request):
     """Lista de clientes"""
-    clientes = Cliente.objects.filter(ativo=True).order_by('nome')
+    clientes = Cliente.objects.all().order_by('nome')
     
-    # Busca
+    # Filtros
     search = request.GET.get('search')
     if search:
         clientes = clientes.filter(
@@ -259,6 +499,12 @@ def cliente_list(request):
             Q(cpf_cnpj__icontains=search) |
             Q(email__icontains=search)
         )
+    
+    status = request.GET.get('status')
+    if status == 'ativo':
+        clientes = clientes.filter(ativo=True)
+    elif status == 'inativo':
+        clientes = clientes.filter(ativo=False)
     
     # Paginação
     page_size = request.GET.get('page_size', 15)
@@ -271,29 +517,116 @@ def cliente_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Estatísticas para o dashboard
+    active_clients_count = Cliente.objects.filter(ativo=True).count()
+    clients_with_processes = Cliente.objects.filter(processo__isnull=False).distinct().count()
+    
+    # Novos clientes este mês
+    today = timezone.now().date()
+    inicio_mes = today.replace(day=1)
+    new_clients_this_month = Cliente.objects.filter(
+        data_cadastro__gte=inicio_mes,
+        data_cadastro__lte=today
+    ).count()
+    
+    # Obter todos os advogados para o modal de processo
+    lawyers = Lawyer.objects.filter(is_active=True)
+    
     return render(request, 'dashboard/clients.html', {
         'page_obj': page_obj,
-        'page_size': page_size
+        'page_size': page_size,
+        'active_clients_count': active_clients_count,
+        'clients_with_processes': clients_with_processes,
+        'new_clients_this_month': new_clients_this_month,
+        'lawyers': lawyers
     })
 
 @login_required
 def cliente_create(request):
     """Criar novo cliente"""
     if request.method == 'POST':
-        form = ClienteForm(request.POST)
-        if form.is_valid():
-            cliente = form.save()
-            
-            # Criar atividade recente
-            AtividadeRecente.objects.create(
-                tipo='cliente_cadastrado',
-                descricao=f'Novo cliente cadastrado: {cliente.nome}',
-                usuario=request.user,
-                cliente=cliente
-            )
-            
-            messages.success(request, 'Cliente cadastrado com sucesso!')
-            return redirect('dashboard:clients')
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+            form = ClienteForm(request.POST)
+            if form.is_valid():
+                cliente = form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='cliente_cadastrado',
+                    descricao=f'Novo cliente cadastrado: {cliente.nome}',
+                    usuario=request.user,
+                    cliente=cliente
+                )
+                
+                # Check if should create process automatically
+                create_process = request.POST.get('create_process')
+                if create_process == 'on':
+                    # Get process data from request
+                    process_numero = request.POST.get('process_numero')
+                    process_titulo = request.POST.get('process_titulo')
+                    process_descricao = request.POST.get('process_descricao')
+                    
+                    if process_numero and process_titulo and process_descricao:
+                        try:
+                            processo = Processo.objects.create(
+                                numero=process_numero,
+                                cliente=cliente,
+                                advogado_responsavel=request.user,
+                                titulo=process_titulo,
+                                descricao=process_descricao,
+                                status='ativo',
+                                data_inicio=timezone.now().date()
+                            )
+                            
+                            # Criar atividade recente para o processo
+                            AtividadeRecente.objects.create(
+                                tipo='processo_criado',
+                                descricao=f'Processo criado automaticamente: {processo.numero} - {processo.titulo}',
+                                usuario=request.user,
+                                processo=processo,
+                                cliente=cliente
+                            )
+                            
+                            return JsonResponse({
+                                'success': True,
+                                'client_id': cliente.id,
+                                'process_id': processo.id,
+                                'message': 'Cliente e processo criados com sucesso!'
+                            })
+                        except Exception as e:
+                            return JsonResponse({
+                                'success': True,
+                                'client_id': cliente.id,
+                                'message': f'Cliente criado com sucesso, mas houve erro ao criar processo: {str(e)}'
+                            })
+                
+                return JsonResponse({
+                    'success': True,
+                    'client_id': cliente.id,
+                    'message': 'Cliente cadastrado com sucesso!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+        else:
+            # Regular form submission
+            form = ClienteForm(request.POST)
+            if form.is_valid():
+                cliente = form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='cliente_cadastrado',
+                    descricao=f'Novo cliente cadastrado: {cliente.nome}',
+                    usuario=request.user,
+                    cliente=cliente
+                )
+                
+                messages.success(request, 'Cliente cadastrado com sucesso!')
+                return redirect('dashboard:clients')
     else:
         form = ClienteForm()
     
@@ -309,11 +642,27 @@ def cliente_update(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
     
     if request.method == 'POST':
-        form = ClienteForm(request.POST, instance=cliente)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Cliente atualizado com sucesso!')
-            return redirect('dashboard:clients')
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+            form = ClienteForm(request.POST, instance=cliente)
+            if form.is_valid():
+                form.save()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Cliente atualizado com sucesso!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+        else:
+            # Regular form submission
+            form = ClienteForm(request.POST, instance=cliente)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Cliente atualizado com sucesso!')
+                return redirect('dashboard:clients')
     else:
         form = ClienteForm(instance=cliente)
     
@@ -327,6 +676,40 @@ def cliente_update(request, pk):
 def cliente_detail(request, pk):
     """Detalhes do cliente"""
     cliente = get_object_or_404(Cliente, pk=pk)
+    
+    # Check if it's an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+        # Get client processes
+        processos = Processo.objects.filter(cliente=cliente).select_related('advogado_responsavel')
+        processes_data = []
+        for processo in processos:
+            processes_data.append({
+                'id': processo.id,
+                'numero': processo.numero,
+                'titulo': processo.titulo,
+                'status': processo.status,
+                'data_inicio': processo.data_inicio.strftime('%d/%m/%Y'),
+                'advogado_responsavel': f"{processo.advogado_responsavel.first_name} {processo.advogado_responsavel.last_name}" if processo.advogado_responsavel else '-'
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'client': {
+                'id': cliente.id,
+                'nome': cliente.nome,
+                'nome_mae': cliente.nome_mae,
+                'cpf_cnpj': cliente.cpf_cnpj,
+                'email': cliente.email,
+                'telefone': cliente.telefone,
+                'endereco': cliente.endereco,
+                'cidade': cliente.cidade,
+                'estado': cliente.estado,
+                'ativo': cliente.ativo,
+                'area_cliente_ativa': cliente.area_cliente_ativa,
+                'data_cadastro': cliente.data_cadastro.strftime('%d/%m/%Y'),
+            },
+            'processes': processes_data
+        })
     
     return render(request, 'dashboard/cliente_detail.html', {
         'cliente': cliente
@@ -440,11 +823,19 @@ def cliente_delete(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
     
     if request.method == 'POST':
-        # Marcar como inativo em vez de deletar
+        # Always handle as AJAX since we're using modals now
         cliente.ativo = False
         cliente.save()
-        messages.success(request, 'Cliente desativado com sucesso!')
-        return redirect('dashboard:clients')
+        
+        # Criar atividade recente
+        AtividadeRecente.objects.create(
+            tipo='cliente_desativado',
+            descricao=f'Cliente desativado: {cliente.nome}',
+            usuario=request.user,
+            cliente=cliente
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Cliente desativado com sucesso!'})
     
     return render(request, 'dashboard/client_confirm_delete.html', {'cliente': cliente})
 
@@ -456,36 +847,100 @@ def client_financial_view(request, pk):
     formas_pagamento = FormaPagamento.objects.filter(ativo=True)
     
     if request.method == 'POST':
-        # Adicionar novo pagamento
-        valor_total = request.POST.get('valor_total')
-        data_pagamento = request.POST.get('data_pagamento')
-        data_vencimento = request.POST.get('data_vencimento')
-        forma_pagamento_id = request.POST.get('forma_pagamento')
-        descricao = request.POST.get('descricao')
-        
-        if valor_total and forma_pagamento_id:
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
             try:
+                # Get form data
+                valor_total = request.POST.get('valor_total')
+                data_pagamento = request.POST.get('data_pagamento')
+                data_vencimento = request.POST.get('data_vencimento')
+                forma_pagamento_id = request.POST.get('forma_pagamento')
+                tipo_id = request.POST.get('tipo')
+                banco_id = request.POST.get('banco')
+                descricao = request.POST.get('descricao')
+                observacoes = request.POST.get('observacoes')
+                pago = request.POST.get('pago') == 'on'
+                
+                # Validate required fields
+                if not valor_total or not forma_pagamento_id or not tipo_id:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Campos obrigatórios não preenchidos.'
+                    })
+                
+                # Get related objects
                 forma_pagamento = FormaPagamento.objects.get(id=forma_pagamento_id)
-                Receita.objects.create(
+                tipo_receita = TipoReceita.objects.get(id=tipo_id)
+                banco = None
+                if banco_id:
+                    banco = Banco.objects.get(id=banco_id)
+                
+                # Create receita
+                receita = Receita.objects.create(
                     cliente=cliente,
                     descricao=descricao or 'Pagamento',
                     valor_total=valor_total,
                     data_vencimento=data_vencimento or timezone.now().date(),
-                    data_recebimento=data_pagamento or timezone.now().date(),
+                    data_recebimento=data_pagamento if pago else None,
                     forma_pagamento=forma_pagamento,
-                    tipo=TipoReceita.objects.first(),  # Tipo padrão
-                    pago=True
+                    tipo=tipo_receita,
+                    banco=banco,
+                    observacoes=observacoes,
+                    pago=pago
                 )
-                messages.success(request, 'Pagamento adicionado com sucesso!')
+                
+                # Create activity log
+                AtividadeRecente.objects.create(
+                    tipo='recebimento_confirmado',
+                    descricao=f'Nova receita adicionada para {cliente.nome}: R$ {valor_total}',
+                    usuario=request.user,
+                    cliente=cliente
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Pagamento adicionado com sucesso!'
+                })
+                
             except Exception as e:
-                messages.error(request, 'Erro ao adicionar pagamento: ' + str(e))
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Erro ao adicionar pagamento: {str(e)}'
+                })
+        else:
+            # Traditional form submission
+            valor_total = request.POST.get('valor_total')
+            data_pagamento = request.POST.get('data_pagamento')
+            data_vencimento = request.POST.get('data_vencimento')
+            forma_pagamento_id = request.POST.get('forma_pagamento')
+            descricao = request.POST.get('descricao')
+            
+            if valor_total and forma_pagamento_id:
+                try:
+                    forma_pagamento = FormaPagamento.objects.get(id=forma_pagamento_id)
+                    Receita.objects.create(
+                        cliente=cliente,
+                        descricao=descricao or 'Pagamento',
+                        valor_total=valor_total,
+                        data_vencimento=data_vencimento or timezone.now().date(),
+                        data_recebimento=data_pagamento or timezone.now().date(),
+                        forma_pagamento=forma_pagamento,
+                        tipo=TipoReceita.objects.first(),  # Tipo padrão
+                        pago=True
+                    )
+                    messages.success(request, 'Pagamento adicionado com sucesso!')
+                except Exception as e:
+                    messages.error(request, 'Erro ao adicionar pagamento: ' + str(e))
         
         return redirect('dashboard:client_financial', pk=cliente.pk)
     
     # Calcular totais e informações financeiras
     total_receitas = sum(r.valor_total for r in receitas if r.pago)
+    receitas_pagas = sum(r.valor_total for r in receitas if r.pago)
+    receitas_pendentes = sum(r.valor_total for r in receitas if not r.pago)
     
     # Adicionar informações financeiras a cada receita
+    receitas_data = []
     for receita in receitas:
         # Calcular saldo devedor
         receita.saldo_devedor = receita.valor_total - (receita.valor_recebido or 0)
@@ -498,6 +953,30 @@ def client_financial_view(request, pk):
             
         # Verificar se está vencida
         receita.vencida = receita.data_vencimento < timezone.now().date() and not receita.pago
+        
+        # Prepare data for JSON response
+        receitas_data.append({
+            'id': receita.id,
+            'descricao': receita.descricao,
+            'valor_total': f"{receita.valor_total:.2f}".replace('.', ','),
+            'data_vencimento': receita.data_vencimento.strftime('%d/%m/%Y'),
+            'pago': receita.pago,
+            'vencida': receita.vencida
+        })
+    
+    # Check if it's an AJAX request for GET
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+        return JsonResponse({
+            'success': True,
+            'client': {
+                'id': cliente.id,
+                'nome': cliente.nome
+            },
+            'receitas': receitas_data,
+            'total_receitas': f"{total_receitas:.2f}".replace('.', ','),
+            'receitas_pagas': f"{receitas_pagas:.2f}".replace('.', ','),
+            'receitas_pendentes': f"{receitas_pendentes:.2f}".replace('.', ',')
+        })
     
     return render(request, 'dashboard/client_financial.html', {
         'cliente': cliente,
@@ -613,20 +1092,46 @@ def calendar_events(request):
 def audiencia_create(request):
     """Criar nova audiência"""
     if request.method == 'POST':
-        form = AudienciaForm(request.POST)
-        if form.is_valid():
-            audiencia = form.save()
-            
-            # Criar atividade recente
-            AtividadeRecente.objects.create(
-                tipo='audiencia_agendada',
-                descricao=f'Audiência agendada: {audiencia.processo.titulo} - {audiencia.get_tipo_display()}',
-                usuario=request.user,
-                processo=audiencia.processo
-            )
-            
-            messages.success(request, 'Audiência agendada com sucesso!')
-            return redirect('dashboard:home')
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+            form = AudienciaForm(request.POST)
+            if form.is_valid():
+                audiencia = form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='audiencia_agendada',
+                    descricao=f'Audiência agendada: {audiencia.processo.titulo} - {audiencia.get_tipo_display()}',
+                    usuario=request.user,
+                    processo=audiencia.processo
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'audiencia_id': audiencia.id,
+                    'message': 'Audiência agendada com sucesso!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+        else:
+            # Regular form submission
+            form = AudienciaForm(request.POST)
+            if form.is_valid():
+                audiencia = form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='audiencia_agendada',
+                    descricao=f'Audiência agendada: {audiencia.processo.titulo} - {audiencia.get_tipo_display()}',
+                    usuario=request.user,
+                    processo=audiencia.processo
+                )
+                
+                messages.success(request, 'Audiência agendada com sucesso!')
+                return redirect('dashboard:home')
     else:
         form = AudienciaForm()
     
@@ -750,11 +1255,37 @@ def receita_list(request):
 def receita_create(request):
     """Criar nova receita"""
     if request.method == 'POST':
-        form = ReceitaForm(request.POST)
-        if form.is_valid():
-            receita = form.save()
-            messages.success(request, 'Receita cadastrada com sucesso!')
-            return redirect('dashboard:receitas')
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+            form = ReceitaForm(request.POST)
+            if form.is_valid():
+                receita = form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='receita_criada',
+                    descricao=f'Nova receita lançada: {receita.descricao} - R$ {receita.valor_total}',
+                    usuario=request.user,
+                    cliente=receita.cliente
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'receita_id': receita.id,
+                    'message': 'Receita cadastrada com sucesso!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+        else:
+            # Regular form submission
+            form = ReceitaForm(request.POST)
+            if form.is_valid():
+                receita = form.save()
+                messages.success(request, 'Receita cadastrada com sucesso!')
+                return redirect('dashboard:receitas')
     else:
         form = ReceitaForm()
     
@@ -794,22 +1325,74 @@ def receita_delete(request, pk):
 
 @login_required
 def receita_pay(request, pk):
-    """Baixar receita"""
+    """Baixar receita com suporte a pagamentos parciais"""
     receita = get_object_or_404(Receita, pk=pk)
     
     if request.method == 'POST':
-        # Processar o pagamento
-        receita.pago = True
-        receita.data_recebimento = request.POST.get('data_recebimento')
-        receita.forma_pagamento_id = request.POST.get('forma_pagamento')
-        receita.banco_id = request.POST.get('banco')
-        receita.parcial = request.POST.get('parcial') == 'on'
-        receita.desconto = request.POST.get('desconto', 0)
-        receita.valor_recebido = request.POST.get('valor_recebido')
-        receita.save()
-        
-        messages.success(request, 'Receita baixada com sucesso!')
-        return redirect('dashboard:receitas')
+        try:
+            # Get form data
+            valor_pagamento = Decimal(request.POST.get('valor_recebido', 0))
+            data_recebimento = request.POST.get('data_recebimento')
+            forma_pagamento_id = request.POST.get('forma_pagamento')
+            banco_id = request.POST.get('banco')
+            desconto = Decimal(request.POST.get('desconto', 0))
+            
+            # Calculate values
+            valor_anterior = receita.valor_recebido or Decimal('0.00')
+            novo_valor_recebido = valor_anterior + valor_pagamento
+            valor_restante = receita.valor_total - novo_valor_recebido
+            
+            # Update receita
+            receita.valor_recebido = novo_valor_recebido
+            receita.data_recebimento = data_recebimento
+            if forma_pagamento_id:
+                receita.forma_pagamento_id = forma_pagamento_id
+            if banco_id:
+                receita.banco_id = banco_id
+            receita.desconto = desconto
+            
+            # Determine payment status
+            if valor_restante <= 0:
+                receita.pago = True
+                receita.parcial = False
+                message = 'Receita quitada com sucesso!'
+            else:
+                receita.pago = False
+                receita.parcial = True
+                message = f'Pagamento parcial registrado. Restante: R$ {valor_restante:,.2f}'
+            
+            receita.save()
+            
+            # Create activity log
+            AtividadeRecente.objects.create(
+                tipo='recebimento_confirmado',
+                descricao=f'Pagamento de R$ {valor_pagamento:,.2f} recebido de {receita.cliente.nome}',
+                usuario=request.user,
+                cliente=receita.cliente,
+                processo=receita.processo
+            )
+            
+            messages.success(request, message)
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': message,
+                    'valor_restante': f'{valor_restante:,.2f}',
+                    'quitado': receita.pago
+                })
+            
+            return redirect('dashboard:receitas')
+            
+        except Exception as e:
+            error_message = f'Erro ao processar pagamento: {str(e)}'
+            messages.error(request, error_message)
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': error_message
+                })
     else:
         # Formulário para baixar receita
         form = ReceitaForm(instance=receita)
@@ -817,6 +1400,7 @@ def receita_pay(request, pk):
     return render(request, 'dashboard/receita_pay.html', {
         'receita': receita,
         'form': form,
+        'valor_restante': receita.valor_total - (receita.valor_recebido or Decimal('0.00'))
     })
 
 @login_required
@@ -1188,3 +1772,475 @@ def tipo_demanda_delete(request, pk):
         return redirect('dashboard:tipo_demanda_list')
     
     return render(request, 'dashboard/tipo_demanda_confirm_delete.html', {'tipo_demanda': tipo_demanda})
+
+@login_required
+def client_processes(request, pk):
+    """API endpoint para buscar processos de um cliente"""
+    cliente = get_object_or_404(Cliente, pk=pk)
+    processos = Processo.objects.filter(cliente=cliente).select_related('advogado_responsavel')
+    
+    processes_data = []
+    for processo in processos:
+        processes_data.append({
+            'id': processo.id,
+            'numero': processo.numero,
+            'titulo': processo.titulo,
+            'status': processo.status,
+            'data_inicio': processo.data_inicio.strftime('%d/%m/%Y'),
+            'advogado_responsavel': f"{processo.advogado_responsavel.first_name} {processo.advogado_responsavel.last_name}" if processo.advogado_responsavel else '-'
+        })
+    
+    return JsonResponse({
+        'processes': processes_data,
+        'client_name': cliente.nome
+    })
+
+@login_required
+def get_payment_options(request):
+    """Get payment form options for AJAX requests"""
+    try:
+        tipos_receita = TipoReceita.objects.all()
+        formas_pagamento = FormaPagamento.objects.filter(ativo=True)
+        bancos = Banco.objects.filter(ativo=True)
+        
+        return JsonResponse({
+            'success': True,
+            'tipos_receita': [{'id': t.id, 'nome': t.nome} for t in tipos_receita],
+            'formas_pagamento': [{'id': f.id, 'nome': f.nome} for f in formas_pagamento],
+            'bancos': [{'id': b.id, 'nome': b.nome} for b in bancos]
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao carregar opções: {str(e)}'
+        })
+
+# AJAX helper views for modals
+@login_required
+def get_clientes_ajax(request):
+    """Retorna lista de clientes ativos em JSON para os selects dos modais"""
+    clientes = Cliente.objects.filter(ativo=True).values('id', 'nome')
+    return JsonResponse(list(clientes), safe=False)
+
+@login_required
+def get_processos_ajax(request):
+    """Retorna lista de processos ativos em JSON para os selects dos modais"""
+    processos = Processo.objects.filter(status='ativo').values('id', 'numero', 'titulo', 'cliente__nome')
+    return JsonResponse(list(processos), safe=False)
+
+@login_required
+def get_formas_pagamento_ajax(request):
+    """Retorna lista de formas de pagamento ativas em JSON para os selects dos modais"""
+    try:
+        formas_pagamento = FormaPagamento.objects.filter(ativo=True).values('id', 'nome').order_by('nome')
+        return JsonResponse({
+            'success': True,
+            'formas_pagamento': list(formas_pagamento)
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao carregar formas de pagamento: {str(e)}'
+        })
+
+# Views específicas para o novo sistema de clientes
+@login_required
+def client_edit(request, pk):
+    """Editar cliente via AJAX"""
+    cliente = get_object_or_404(Cliente, pk=pk)
+    
+    if request.method == 'POST':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            form = ClienteForm(request.POST, instance=cliente)
+            if form.is_valid():
+                form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='cliente_atualizado',
+                    descricao=f'Cliente atualizado: {cliente.nome}',
+                    usuario=request.user,
+                    cliente=cliente
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Cliente atualizado com sucesso!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+    
+    return JsonResponse({'success': False, 'message': 'Método não permitido'})
+
+@login_required
+def client_financial(request, pk):
+    """Retornar informações financeiras do cliente via AJAX"""
+    cliente = get_object_or_404(Cliente, pk=pk)
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            # Buscar receitas do cliente
+            receitas = Receita.objects.filter(cliente=cliente).order_by('-data_vencimento')
+            
+            # Calcular totais considerando pagamentos parciais
+            total_receitas = receitas.aggregate(total=Sum('valor_total'))['total'] or Decimal('0.00')
+            total_recebido = Decimal('0.00')
+            total_restante = Decimal('0.00')
+            
+            for receita in receitas:
+                valor_recebido = receita.valor_recebido or Decimal('0.00')
+                total_recebido += valor_recebido
+                if not receita.pago:
+                    total_restante += (receita.valor_total - valor_recebido)
+            
+            # Preparar dados das receitas
+            receitas_data = []
+            for receita in receitas:
+                valor_recebido = receita.valor_recebido or Decimal('0.00')
+                valor_restante = receita.valor_total - valor_recebido
+                
+                # Determinar status
+                if receita.pago:
+                    status = 'Pago'
+                    status_class = 'success'
+                elif receita.parcial or valor_recebido > 0:
+                    status = 'Parcial'
+                    status_class = 'warning'
+                else:
+                    status = 'Pendente'
+                    status_class = 'danger'
+                
+                receitas_data.append({
+                    'id': receita.id,
+                    'descricao': receita.descricao,
+                    'valor_total': f"{receita.valor_total:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                    'valor_recebido': f"{valor_recebido:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                    'valor_restante': f"{valor_restante:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                    'data_vencimento': receita.data_vencimento.strftime('%d/%m/%Y') if receita.data_vencimento else '-',
+                    'data_recebimento': receita.data_recebimento.strftime('%d/%m/%Y') if receita.data_recebimento else '-',
+                    'pago': receita.pago,
+                    'parcial': receita.parcial,
+                    'status': status,
+                    'status_class': status_class,
+                    'processo': receita.processo.numero if receita.processo else '-',
+                    'forma_pagamento': receita.forma_pagamento.nome if receita.forma_pagamento else '-'
+                })
+            
+            return JsonResponse({
+                'success': True,
+                'cliente': cliente.nome,
+                'total_receitas': f"{total_receitas:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                'total_recebido': f"{total_recebido:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                'total_restante': f"{total_restante:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                'receitas': receitas_data
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Erro ao carregar informações financeiras: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Requisição inválida'})
+
+@login_required
+def add_partial_payment(request, receita_pk):
+    """Adicionar pagamento parcial a uma receita"""
+    receita = get_object_or_404(Receita, pk=receita_pk)
+    
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            # Get form data
+            valor_pagamento = Decimal(request.POST.get('valor_pagamento', 0))
+            data_pagamento = request.POST.get('data_pagamento')
+            forma_pagamento_id = request.POST.get('forma_pagamento')
+            banco_id = request.POST.get('banco')
+            observacoes = request.POST.get('observacoes', '')
+            
+            # Validate amount
+            valor_anterior = receita.valor_recebido or Decimal('0.00')
+            valor_restante = receita.valor_total - valor_anterior
+            
+            if valor_pagamento <= 0:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'O valor do pagamento deve ser maior que zero.'
+                })
+            
+            if valor_pagamento > valor_restante:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'O valor do pagamento (R$ {valor_pagamento:,.2f}) não pode ser maior que o valor restante (R$ {valor_restante:,.2f}).'
+                })
+            
+            # Calculate new values
+            novo_valor_recebido = valor_anterior + valor_pagamento
+            novo_valor_restante = receita.valor_total - novo_valor_recebido
+            
+            # Update receita
+            receita.valor_recebido = novo_valor_recebido
+            receita.data_recebimento = data_pagamento if data_pagamento else timezone.now().date()
+            
+            if forma_pagamento_id:
+                receita.forma_pagamento_id = forma_pagamento_id
+            if banco_id:
+                receita.banco_id = banco_id
+                
+            # Add to observations
+            if observacoes:
+                if receita.observacoes:
+                    receita.observacoes += f'\n\n[{timezone.now().strftime("%d/%m/%Y")}] {observacoes}'
+                else:
+                    receita.observacoes = f'[{timezone.now().strftime("%d/%m/%Y")}] {observacoes}'
+            
+            # Determine payment status
+            if novo_valor_restante <= 0:
+                receita.pago = True
+                receita.parcial = False
+                message = f'Receita quitada com pagamento de R$ {valor_pagamento:,.2f}!'
+            else:
+                receita.pago = False
+                receita.parcial = True
+                message = f'Pagamento parcial de R$ {valor_pagamento:,.2f} registrado. Restante: R$ {novo_valor_restante:,.2f}'
+            
+            receita.save()
+            
+            # Create activity log
+            AtividadeRecente.objects.create(
+                tipo='recebimento_confirmado',
+                descricao=f'Pagamento parcial de R$ {valor_pagamento:,.2f} recebido de {receita.cliente.nome}',
+                usuario=request.user,
+                cliente=receita.cliente,
+                processo=receita.processo
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': message,
+                'novo_valor_recebido': f'{novo_valor_recebido:,.2f}',
+                'novo_valor_restante': f'{novo_valor_restante:,.2f}',
+                'quitado': receita.pago
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Erro ao processar pagamento: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método não permitido'})
+
+@login_required 
+def activate_client_area(request, pk):
+    """Ativar área do cliente e gerar senha"""
+    cliente = get_object_or_404(Cliente, pk=pk)
+    
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            import secrets
+            import string
+            
+            # Gerar senha aleatória
+            alphabet = string.ascii_letters + string.digits
+            password = ''.join(secrets.choice(alphabet) for i in range(8))
+            
+            # Ativar área do cliente
+            cliente.area_cliente_ativa = True
+            cliente.senha_area_cliente = password  # Assumindo que este campo existe
+            cliente.save()
+            
+            # Criar atividade recente
+            AtividadeRecente.objects.create(
+                tipo='area_cliente_ativada',
+                descricao=f'Área do cliente ativada: {cliente.nome}',
+                usuario=request.user,
+                cliente=cliente
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'cpf': cliente.cpf_cnpj,
+                'password': password,
+                'message': 'Área do cliente ativada com sucesso!'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Erro ao ativar área do cliente: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método não permitido'})
+
+# Views para Processos
+@login_required
+def processo_list(request):
+    """Lista de processos"""
+    processos = Processo.objects.all().select_related('cliente', 'advogado_responsavel').order_by('-data_inicio')
+    return render(request, 'dashboard/processo_list.html', {'processos': processos})
+
+@login_required
+def processo_create(request):
+    """Criar novo processo"""
+    if request.method == 'POST':
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            form = ProcessoForm(request.POST)
+            if form.is_valid():
+                processo = form.save(commit=False)
+                processo.advogado_responsavel = request.user
+                processo.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='processo_criado',
+                    descricao=f'Novo processo criado: {processo.numero} - {processo.titulo}',
+                    usuario=request.user,
+                    processo=processo,
+                    cliente=processo.cliente
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'process_id': processo.id,
+                    'message': 'Processo criado com sucesso!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+        else:
+            # Regular form submission
+            form = ProcessoForm(request.POST)
+            if form.is_valid():
+                processo = form.save(commit=False)
+                processo.advogado_responsavel = request.user
+                processo.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='processo_criado',
+                    descricao=f'Novo processo criado: {processo.numero} - {processo.titulo}',
+                    usuario=request.user,
+                    processo=processo,
+                    cliente=processo.cliente
+                )
+                
+                messages.success(request, 'Processo criado com sucesso!')
+                return redirect('dashboard:processo_list')
+    else:
+        form = ProcessoForm()
+    
+    return render(request, 'dashboard/processo_form.html', {'form': form})
+
+@login_required
+def processo_update(request, pk):
+    """Atualizar processo"""
+    processo = get_object_or_404(Processo, pk=pk)
+    
+    if request.method == 'POST':
+        form = ProcessoForm(request.POST, instance=processo)
+        if form.is_valid():
+            form.save()
+            
+            # Criar atividade recente
+            AtividadeRecente.objects.create(
+                tipo='processo_atualizado',
+                descricao=f'Processo atualizado: {processo.numero}',
+                usuario=request.user,
+                processo=processo,
+                cliente=processo.cliente
+            )
+            
+            messages.success(request, 'Processo atualizado com sucesso!')
+            return redirect('dashboard:processo_list')
+    else:
+        form = ProcessoForm(instance=processo)
+    
+    return render(request, 'dashboard/processo_form.html', {'form': form, 'processo': processo})
+
+@login_required
+def processo_detail(request, pk):
+    """Detalhes do processo"""
+    processo = get_object_or_404(Processo, pk=pk)
+    return render(request, 'dashboard/processo_detail.html', {'processo': processo})
+
+@login_required
+def processo_delete(request, pk):
+    """Deletar processo"""
+    processo = get_object_or_404(Processo, pk=pk)
+    
+    if request.method == 'POST':
+        processo.status = 'arquivado'
+        processo.save()
+        
+        # Criar atividade recente
+        AtividadeRecente.objects.create(
+            tipo='processo_arquivado',
+            descricao=f'Processo arquivado: {processo.numero}',
+            usuario=request.user,
+            processo=processo,
+            cliente=processo.cliente
+        )
+        
+        messages.success(request, 'Processo arquivado com sucesso!')
+        return redirect('dashboard:processo_list')
+    
+    return render(request, 'dashboard/confirm_delete.html', {
+        'object': processo,
+        'object_name': 'processo'
+    })
+
+# View para audiências que estava faltando 
+@login_required
+def audiencia_create(request):
+    """Criar nova audiência"""
+    if request.method == 'POST':
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            form = AudienciaForm(request.POST)
+            if form.is_valid():
+                audiencia = form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='audiencia_agendada',
+                    descricao=f'Audiência agendada: {audiencia.processo.numero} - {audiencia.get_tipo_display()}',
+                    usuario=request.user,
+                    processo=audiencia.processo,
+                    cliente=audiencia.processo.cliente
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'audiencia_id': audiencia.id,
+                    'message': 'Audiência agendada com sucesso!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+        else:
+            # Regular form submission
+            form = AudienciaForm(request.POST)
+            if form.is_valid():
+                audiencia = form.save()
+                
+                # Criar atividade recente
+                AtividadeRecente.objects.create(
+                    tipo='audiencia_agendada',
+                    descricao=f'Audiência agendada: {audiencia.processo.numero} - {audiencia.get_tipo_display()}',
+                    usuario=request.user,
+                    processo=audiencia.processo,
+                    cliente=audiencia.processo.cliente
+                )
+                
+                messages.success(request, 'Audiência agendada com sucesso!')
+                return redirect('dashboard:audiencia_list')
+    else:
+        form = AudienciaForm()
+    
+    return render(request, 'dashboard/audiencia_form.html', {'form': form})

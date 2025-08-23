@@ -1,182 +1,281 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}Dashboard - Louzada & Laurindo{% endblock %}
+{% block title %}Dashboard - Escritório de Advocacia{% endblock %}
 
 {% block custom_css %}
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     :root {
-        --primary-color: #2c3e50;
-        --secondary-color: #34495e;
-        --accent-color: #3498db;
-        --success-color: #27ae60;
-        --warning-color: #f39c12;
-        --danger-color: #e74c3c;
-        --light-bg: #ecf0f1;
+        --primary-color: #1a365d;
+        --secondary-color: #2d4a63;
+        --accent-color: #3182ce;
+        --success-color: #38a169;
+        --warning-color: #d69e2e;
+        --danger-color: #e53e3e;
+        --light-bg: #f7fafc;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --border-color: #e2e8f0;
+        --shadow-light: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
 
     .main-content {
-        padding: 2rem !important;
-        background-color: #f8f9fa;
+        padding: 2rem;
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        min-height: 100vh;
     }
 
-    .top-bar {
+    /* Header Section */
+    .dashboard-header {
         background: white;
-        padding: 1rem 2rem;
-        border-radius: 15px;
-        box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+        border-radius: 16px;
+        padding: 2rem;
         margin-bottom: 2rem;
+        box-shadow: var(--shadow-medium);
+        border: 1px solid var(--border-color);
+    }
+
+    .header-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 1.5rem;
     }
 
     .welcome-section h1 {
-        color: var(--primary-color);
+        font-size: 2.25rem;
         font-weight: 700;
+        color: var(--primary-color);
         margin: 0;
-        font-size: 1.8rem;
+        letter-spacing: -0.025em;
     }
 
     .welcome-section p {
-        color: #7f8c8d;
-        margin: 0;
-        font-size: 0.95rem;
+        color: var(--text-secondary);
+        margin: 0.5rem 0 0 0;
+        font-size: 1.1rem;
     }
 
-    .user-info {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
+    .header-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
     }
 
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
+    .header-stat {
+        text-align: center;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--light-bg) 0%, white 100%);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
     }
 
+    .header-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.25rem;
+    }
+
+    .header-stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Quick Actions */
     .quick-actions {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 1rem;
         margin-bottom: 2rem;
     }
 
-    .quick-action-btn {
+    .quick-action-card {
         background: white;
-        border: none;
-        padding: 1rem;
-        border-radius: 15px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-light);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .quick-action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .quick-action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-large);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .quick-action-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .quick-action-header {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        text-decoration: none;
-        color: var(--primary-color);
-        font-weight: 600;
-        transition: all 0.3s ease;
-        flex: 1;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .quick-action-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
         justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
     }
 
-    .quick-action-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 25px rgba(0,0,0,0.1);
-        color: var(--accent-color);
+    .quick-action-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        font-size: 1.1rem;
     }
 
+    .quick-action-desc {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    /* Stats Grid */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
 
     .stat-card {
         background: white;
+        border-radius: 16px;
         padding: 1.5rem;
-        border-radius: 15px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-        border-left: 4px solid var(--accent-color);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-light);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
     }
 
-    .stat-card::before {
+    .stat-card::after {
         content: '';
         position: absolute;
         top: 0;
         right: 0;
         width: 100px;
         height: 100px;
-        opacity: 0.05;
-        background: var(--accent-color);
+        background: linear-gradient(135deg, rgba(49, 130, 206, 0.1), rgba(26, 54, 93, 0.05));
         border-radius: 50%;
-        transform: translate(30px, -30px);
+        transform: translate(30%, -30%);
     }
 
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
     }
-
-    .stat-card.success { border-left-color: var(--success-color); }
-    .stat-card.warning { border-left-color: var(--warning-color); }
-    .stat-card.danger { border-left-color: var(--danger-color); }
 
     .stat-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
     }
 
     .stat-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.5rem;
         color: white;
+        box-shadow: var(--shadow-light);
     }
 
-    .stat-icon.primary { background: var(--accent-color); }
-    .stat-icon.success { background: var(--success-color); }
-    .stat-icon.warning { background: var(--warning-color); }
-    .stat-icon.danger { background: var(--danger-color); }
+    .stat-icon.primary { background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); }
+    .stat-icon.success { background: linear-gradient(135deg, #48bb78, var(--success-color)); }
+    .stat-icon.warning { background: linear-gradient(135deg, #ed8936, var(--warning-color)); }
+    .stat-icon.danger { background: linear-gradient(135deg, #f56565, var(--danger-color)); }
+
+    .stat-content {
+        position: relative;
+        z-index: 1;
+    }
 
     .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--primary-color);
-        margin: 0;
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0 0 0.25rem 0;
+        line-height: 1;
     }
 
     .stat-label {
-        color: #7f8c8d;
-        font-size: 0.9rem;
-        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin: 0 0 0.75rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .stat-change {
-        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
         font-weight: 600;
-        margin-top: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
     }
 
-    .stat-change.positive { color: var(--success-color); }
-    .stat-change.negative { color: var(--danger-color); }
+    .stat-change.positive {
+        color: var(--success-color);
+        background: rgba(56, 161, 105, 0.1);
+    }
 
+    .stat-change.negative {
+        color: var(--danger-color);
+        background: rgba(229, 62, 62, 0.1);
+    }
+
+    .stat-change.neutral {
+        color: var(--text-secondary);
+        background: rgba(113, 128, 150, 0.1);
+    }
+
+    /* Content Grid */
     .content-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
@@ -184,41 +283,78 @@
         margin-bottom: 2rem;
     }
 
-    .card {
+    .chart-container {
         background: white;
-        border-radius: 15px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-        border: none;
-        overflow: hidden;
-    }
-
-    .card-header {
-        background: transparent;
-        border-bottom: 1px solid #eee;
+        border-radius: 16px;
         padding: 1.5rem;
-        border-radius: 0;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-light);
+        height: 400px;
     }
 
-    .card-title {
-        color: var(--primary-color);
+    .chart-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .chart-title {
+        font-size: 1.25rem;
         font-weight: 700;
-        font-size: 1.1rem;
+        color: var(--text-primary);
         margin: 0;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 
-    .card-body {
-        padding: 1.5rem;
+    /* Secondary Grid */
+    .secondary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
     }
 
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-light);
+        overflow: hidden;
+    }
+
+    .info-card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--light-bg);
+    }
+
+    .info-card-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-card-body {
+        padding: 1.5rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    /* Activity Items */
     .activity-item {
         display: flex;
         align-items: flex-start;
         gap: 1rem;
         padding: 1rem 0;
-        border-bottom: 1px solid #f8f9fa;
+        border-bottom: 1px solid var(--border-color);
     }
 
     .activity-item:last-child {
@@ -226,92 +362,92 @@
     }
 
     .activity-icon {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.8rem;
+        font-size: 0.875rem;
         color: white;
         flex-shrink: 0;
     }
 
-    .activity-icon.client { background: var(--success-color); }
-    .activity-icon.task { background: var(--accent-color); }
-    .activity-icon.payment { background: var(--warning-color); }
-    .activity-icon.document { background: var(--danger-color); }
+    .activity-icon.client { background: linear-gradient(135deg, #48bb78, var(--success-color)); }
+    .activity-icon.task { background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); }
+    .activity-icon.payment { background: linear-gradient(135deg, #ed8936, var(--warning-color)); }
+    .activity-icon.document { background: linear-gradient(135deg, #f56565, var(--danger-color)); }
 
-    .activity-content h6 {
-        color: var(--primary-color);
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin: 0 0 0.25rem 0;
+    .activity-content {
+        flex: 1;
     }
 
-    .activity-content p {
-        color: #7f8c8d;
+    .activity-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.25rem 0;
+        font-size: 0.875rem;
+    }
+
+    .activity-desc {
+        color: var(--text-secondary);
         font-size: 0.8rem;
         margin: 0;
+        line-height: 1.4;
     }
 
     .activity-time {
-        color: #bdc3c7;
+        color: var(--text-secondary);
         font-size: 0.75rem;
+        font-weight: 500;
+        white-space: nowrap;
     }
 
+    /* Agenda Items */
     .agenda-item {
-        background: #f8f9fa;
         padding: 1rem;
-        border-radius: 8px;
         margin-bottom: 0.75rem;
+        border-radius: 12px;
         border-left: 4px solid var(--accent-color);
+        background: var(--light-bg);
+        transition: all 0.2s ease;
     }
 
     .agenda-item.urgent {
         border-left-color: var(--danger-color);
-        background: rgba(231, 76, 60, 0.05);
+        background: rgba(229, 62, 62, 0.05);
+    }
+
+    .agenda-item:hover {
+        transform: translateX(4px);
+        box-shadow: var(--shadow-light);
     }
 
     .agenda-time {
         color: var(--accent-color);
-        font-weight: 600;
-        font-size: 0.85rem;
+        font-weight: 700;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
     }
 
     .agenda-title {
-        color: var(--primary-color);
+        color: var(--text-primary);
         font-weight: 600;
         margin: 0.25rem 0;
-        font-size: 0.9rem;
+        font-size: 0.875rem;
     }
 
     .agenda-client {
-        color: #7f8c8d;
+        color: var(--text-secondary);
         font-size: 0.8rem;
+        margin: 0;
     }
 
-    .btn-new-task {
-        background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
-        border: none;
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 25px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-    }
-
-    .btn-new-task:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 20px rgba(52, 152, 219, 0.3);
-        color: white;
-    }
-
+    /* Empty States */
     .empty-state {
         text-align: center;
-        padding: 2rem;
-        color: #95a5a6;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
     }
 
     .empty-state i {
@@ -320,70 +456,178 @@
         opacity: 0.5;
     }
 
-    @media (max-width: 768px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
+    .empty-state p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
 
+    /* Vencimentos */
+    .vencimento-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .vencimento-item:last-child {
+        border-bottom: none;
+    }
+
+    .vencimento-info h6 {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .vencimento-info p {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    .vencimento-valor {
+        text-align: right;
+    }
+
+    .vencimento-valor .valor {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .vencimento-valor .data {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
         .content-grid {
             grid-template-columns: 1fr;
         }
+        
+        .secondary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 
-        .quick-actions {
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 1rem;
+        }
+        
+        .header-top {
             flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-actions {
+            grid-template-columns: 1fr;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Top Bar -->
-<div class="top-bar">
-    <div class="welcome-section">
-        <h1>Dashboard</h1>
-        <p>Visão geral das atividades e métricas do escritório</p>
-    </div>
-    <div class="user-info">
-        <div class="text-end me-3">
-            <div style="font-weight: 600; color: var(--primary-color);">{{ user.get_full_name|default:user.username }}</div>
-            <small class="text-muted">{{ user.email }}</small>
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <div class="header-top">
+        <div class="welcome-section">
+            <h1>Dashboard Executivo</h1>
+            <p>Visão completa do escritório - {{ "now"|date:"d/m/Y H:i" }}</p>
         </div>
-        <div class="user-avatar">
-            {{ user.first_name.0|default:user.username.0|upper }}
+        <div class="user-info">
+            <div class="text-end me-3">
+                <div style="font-weight: 600; color: var(--primary-color);">{{ user.get_full_name|default:user.username }}</div>
+                <small class="text-muted">{{ user.email }}</small>
+            </div>
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.2rem;">
+                {{ user.first_name.0|default:user.username.0|upper }}
+            </div>
+        </div>
+    </div>
+
+    <div class="header-stats">
+        <div class="header-stat">
+            <div class="header-stat-value">{{ audiencias_hoje }}</div>
+            <div class="header-stat-label">Audiências Hoje</div>
+        </div>
+        <div class="header-stat">
+            <div class="header-stat-value">{{ audiencias_semana }}</div>
+            <div class="header-stat-label">Audiências Esta Semana</div>
+        </div>
+        <div class="header-stat">
+            <div class="header-stat-value">{{ tarefas_atrasadas }}</div>
+            <div class="header-stat-label">Tarefas Atrasadas</div>
+        </div>
+        <div class="header-stat">
+            <div class="header-stat-value">{{ taxa_conversao }}%</div>
+            <div class="header-stat-label">Taxa de Conversão</div>
         </div>
     </div>
 </div>
 
 <!-- Quick Actions -->
 <div class="quick-actions">
-    <a href="{% url 'dashboard:client_create' %}" class="quick-action-btn">
-        <i class="fas fa-user-plus"></i>
-        Novo Cliente
-    </a>
-    <a href="{% url 'dashboard:task_create' %}" class="quick-action-btn">
-        <i class="fas fa-plus"></i>
-        Nova Tarefa
-    </a>
-    <a href="{% url 'dashboard:audiencia_create' %}" class="quick-action-btn">
-        <i class="fas fa-calendar-plus"></i>
-        Agendar Audiência
-    </a>
-    <a href="{% url 'dashboard:receita_create' %}" class="quick-action-btn">
-        <i class="fas fa-receipt"></i>
-        Lançar Receita
-    </a>
+    <button type="button" class="quick-action-card" data-bs-toggle="modal" data-bs-target="#clienteModal">
+        <div class="quick-action-header">
+            <div class="quick-action-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+        </div>
+        <h3 class="quick-action-title">Novo Cliente</h3>
+        <p class="quick-action-desc">Cadastrar novo cliente no sistema</p>
+    </button>
+    
+    <button type="button" class="quick-action-card" data-bs-toggle="modal" data-bs-target="#processoModal">
+        <div class="quick-action-header">
+            <div class="quick-action-icon">
+                <i class="fas fa-folder-plus"></i>
+            </div>
+        </div>
+        <h3 class="quick-action-title">Novo Processo</h3>
+        <p class="quick-action-desc">Abrir novo processo judicial</p>
+    </button>
+    
+    <button type="button" class="quick-action-card" data-bs-toggle="modal" data-bs-target="#audienciaModal">
+        <div class="quick-action-header">
+            <div class="quick-action-icon">
+                <i class="fas fa-calendar-plus"></i>
+            </div>
+        </div>
+        <h3 class="quick-action-title">Agendar Audiência</h3>
+        <p class="quick-action-desc">Marcar nova audiência</p>
+    </button>
+    
+    <button type="button" class="quick-action-card" data-bs-toggle="modal" data-bs-target="#receitaModal">
+        <div class="quick-action-header">
+            <div class="quick-action-icon">
+                <i class="fas fa-receipt"></i>
+            </div>
+        </div>
+        <h3 class="quick-action-title">Lançar Receita</h3>
+        <p class="quick-action-desc">Registrar nova receita</p>
+    </button>
 </div>
 
 <!-- Stats Grid -->
 <div class="stats-grid">
+    <!-- Clientes -->
     <div class="stat-card">
         <div class="stat-header">
-            <div>
+            <div class="stat-content">
                 <h3 class="stat-value">{{ total_clientes }}</h3>
                 <p class="stat-label">Total de Clientes</p>
                 {% if clientes_novos > 0 %}
                 <div class="stat-change positive">
-                    <i class="fas fa-arrow-up"></i> +{{ clientes_novos }} este mês
+                    <i class="fas fa-arrow-up"></i> +{{ clientes_novos }} novos
                 </div>
                 {% endif %}
             </div>
@@ -393,27 +637,53 @@
         </div>
     </div>
 
-    <div class="stat-card warning">
+    <!-- Processos Ativos -->
+    <div class="stat-card">
         <div class="stat-header">
-            <div>
+            <div class="stat-content">
+                <h3 class="stat-value">{{ processos_ativos }}</h3>
+                <p class="stat-label">Processos Ativos</p>
+                {% if processos_finalizados_mes > 0 %}
+                <div class="stat-change positive">
+                    <i class="fas fa-check"></i> {{ processos_finalizados_mes }} finalizados
+                </div>
+                {% endif %}
+            </div>
+            <div class="stat-icon primary">
+                <i class="fas fa-folder-open"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarefas Pendentes -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-content">
                 <h3 class="stat-value">{{ tarefas_pendentes }}</h3>
                 <p class="stat-label">Tarefas Pendentes</p>
-                <div class="stat-change">
-                    <i class="fas fa-clock"></i> -4 desde ontem
+                {% if tarefas_atrasadas > 0 %}
+                <div class="stat-change negative">
+                    <i class="fas fa-exclamation-triangle"></i> {{ tarefas_atrasadas }} atrasadas
                 </div>
+                {% else %}
+                <div class="stat-change positive">
+                    <i class="fas fa-check"></i> Em dia
+                </div>
+                {% endif %}
             </div>
-            <div class="stat-icon warning">
+            <div class="stat-icon {% if tarefas_atrasadas > 0 %}danger{% else %}warning{% endif %}">
                 <i class="fas fa-tasks"></i>
             </div>
         </div>
     </div>
 
-    <div class="stat-card danger">
+    <!-- Audiências -->
+    <div class="stat-card">
         <div class="stat-header">
-            <div>
+            <div class="stat-content">
                 <h3 class="stat-value">{{ audiencias_pendentes }}</h3>
                 <p class="stat-label">Audiências Agendadas</p>
-                <div class="stat-change">
+                <div class="stat-change neutral">
                     <i class="fas fa-calendar"></i> Próximos 30 dias
                 </div>
             </div>
@@ -423,18 +693,16 @@
         </div>
     </div>
 
-    <div class="stat-card success">
+    <!-- Receitas do Mês -->
+    <div class="stat-card">
         <div class="stat-header">
-            <div>
-                <h3 class="stat-value">R$ {{ receitas_mes|floatformat:2 }}</h3>
-                <p class="stat-label">Receitas do Mês</p>
-                {% if saldo_mes > 0 %}
-                <div class="stat-change positive">
-                    <i class="fas fa-arrow-up"></i> +18% vs mês anterior
-                </div>
-                {% else %}
-                <div class="stat-change negative">
-                    <i class="fas fa-arrow-down"></i> -5% vs mês anterior
+            <div class="stat-content">
+                <h3 class="stat-value">R$ {{ receitas_pagas_mes|floatformat:2 }}</h3>
+                <p class="stat-label">Receitas Realizadas</p>
+                {% if variacao_receitas != 0 %}
+                <div class="stat-change {% if variacao_receitas > 0 %}positive{% else %}negative{% endif %}">
+                    <i class="fas fa-arrow-{% if variacao_receitas > 0 %}up{% else %}down{% endif %}"></i> 
+                    {{ variacao_receitas|floatformat:1 }}% vs mês anterior
                 </div>
                 {% endif %}
             </div>
@@ -444,14 +712,40 @@
         </div>
     </div>
 
+    <!-- Receitas Pendentes -->
     <div class="stat-card">
         <div class="stat-header">
-            <div>
-                <h3 class="stat-value">R$ {{ despesas_mes|floatformat:2 }}</h3>
-                <p class="stat-label">Despesas do Mês</p>
+            <div class="stat-content">
+                <h3 class="stat-value">R$ {{ receitas_pendentes|floatformat:2 }}</h3>
+                <p class="stat-label">Receitas Pendentes</p>
+                {% if receitas_vencidas > 0 %}
                 <div class="stat-change negative">
-                    <i class="fas fa-arrow-down"></i> -3% vs mês anterior
+                    <i class="fas fa-exclamation-triangle"></i> R$ {{ receitas_vencidas|floatformat:2 }} vencidas
                 </div>
+                {% else %}
+                <div class="stat-change positive">
+                    <i class="fas fa-check"></i> Nenhuma vencida
+                </div>
+                {% endif %}
+            </div>
+            <div class="stat-icon warning">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Despesas -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-content">
+                <h3 class="stat-value">R$ {{ despesas_pagas_mes|floatformat:2 }}</h3>
+                <p class="stat-label">Despesas Pagas</p>
+                {% if variacao_despesas != 0 %}
+                <div class="stat-change {% if variacao_despesas > 0 %}negative{% else %}positive{% endif %}">
+                    <i class="fas fa-arrow-{% if variacao_despesas > 0 %}up{% else %}down{% endif %}"></i> 
+                    {{ variacao_despesas|floatformat:1 }}% vs mês anterior
+                </div>
+                {% endif %}
             </div>
             <div class="stat-icon danger">
                 <i class="fas fa-credit-card"></i>
@@ -459,48 +753,21 @@
         </div>
     </div>
 
-    <div class="stat-card {% if saldo_mes > 0 %}success{% else %}danger{% endif %}">
-        <div class="stat-header">
-            <div>
-                <h3 class="stat-value">R$ {{ saldo_mes|floatformat:2 }}</h3>
-                <p class="stat-label">Saldo do Mês</p>
-                <div class="stat-change {% if saldo_mes > 0 %}positive{% else %}negative{% endif %}">
-                    <i class="fas fa-{% if saldo_mes > 0 %}arrow-up{% else %}arrow-down{% endif %}"></i> 
-                    {% if saldo_mes > 0 %}+22%{% else %}-15%{% endif %} vs mês anterior
-                </div>
-            </div>
-            <div class="stat-icon {% if saldo_mes > 0 %}success{% else %}danger{% endif %}">
-                <i class="fas fa-chart-line"></i>
-            </div>
-        </div>
-    </div>
-
+    <!-- Saldo do Mês -->
     <div class="stat-card">
         <div class="stat-header">
-            <div>
-                <h3 class="stat-value">{{ total_processos }}</h3>
-                <p class="stat-label">Processos Ativos</p>
-                <div class="stat-change positive">
-                    <i class="fas fa-arrow-up"></i> +12 este mês
+            <div class="stat-content">
+                <h3 class="stat-value">R$ {{ saldo_mes|floatformat:2 }}</h3>
+                <p class="stat-label">Saldo do Mês</p>
+                {% if variacao_saldo != 0 %}
+                <div class="stat-change {% if saldo_mes > 0 %}positive{% else %}negative{% endif %}">
+                    <i class="fas fa-chart-line"></i> 
+                    {{ variacao_saldo|floatformat:1 }}% vs mês anterior
                 </div>
+                {% endif %}
             </div>
-            <div class="stat-icon primary">
-                <i class="fas fa-folder-open"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="stat-card warning">
-        <div class="stat-header">
-            <div>
-                <h3 class="stat-value">{{ publicacoes_nao_lidas }}</h3>
-                <p class="stat-label">Publicações não Lidas</p>
-                <div class="stat-change">
-                    <i class="fas fa-newspaper"></i> -2 desde ontem
-                </div>
-            </div>
-            <div class="stat-icon warning">
-                <i class="fas fa-bell"></i>
+            <div class="stat-icon {% if saldo_mes > 0 %}success{% else %}danger{% endif %}">
+                <i class="fas fa-balance-scale"></i>
             </div>
         </div>
     </div>
@@ -508,15 +775,40 @@
 
 <!-- Content Grid -->
 <div class="content-grid">
-    <!-- Activities -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title">
+    <!-- Financial Chart -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3 class="chart-title">
+                <i class="fas fa-chart-line"></i>
+                Receitas vs Despesas - Últimos 6 Meses
+            </h3>
+        </div>
+        <canvas id="financialChart" style="height: 300px;"></canvas>
+    </div>
+
+    <!-- Process Status Chart -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3 class="chart-title">
+                <i class="fas fa-pie-chart"></i>
+                Status dos Processos
+            </h3>
+        </div>
+        <canvas id="processChart" style="height: 300px;"></canvas>
+    </div>
+</div>
+
+<!-- Secondary Grid -->
+<div class="secondary-grid">
+    <!-- Recent Activities -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <h3 class="info-card-title">
                 <i class="fas fa-history"></i>
                 Atividades Recentes
-            </h5>
+            </h3>
         </div>
-        <div class="card-body">
+        <div class="info-card-body">
             {% if atividades_recentes %}
                 {% for atividade in atividades_recentes %}
                 <div class="activity-item">
@@ -535,9 +827,9 @@
                             <i class="fas fa-info"></i>
                         {% endif %}
                     </div>
-                    <div class="activity-content flex-grow-1">
-                        <h6>{{ atividade.get_tipo_display }}</h6>
-                        <p>{{ atividade.descricao }}</p>
+                    <div class="activity-content">
+                        <h6 class="activity-title">{{ atividade.get_tipo_display }}</h6>
+                        <p class="activity-desc">{{ atividade.descricao }}</p>
                     </div>
                     <div class="activity-time">
                         {{ atividade.data_criacao|timesince }} atrás
@@ -554,17 +846,14 @@
     </div>
 
     <!-- Agenda -->
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title">
+    <div class="info-card">
+        <div class="info-card-header">
+            <h3 class="info-card-title">
                 <i class="fas fa-calendar-alt"></i>
-                Agenda
-            </h5>
-            <a href="{% url 'dashboard:task_create' %}" class="btn btn-new-task btn-sm">
-                <i class="fas fa-plus"></i> Nova Tarefa
-            </a>
+                Agenda Próxima
+            </h3>
         </div>
-        <div class="card-body">
+        <div class="info-card-body">
             {% if proximas_audiencias or tarefas_urgentes %}
                 <!-- Próximas Audiências -->
                 {% for audiencia in proximas_audiencias %}
@@ -604,37 +893,700 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- Próximos Vencimentos -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <h3 class="info-card-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Próximos Vencimentos
+            </h3>
+        </div>
+        <div class="info-card-body">
+            {% if proximos_vencimentos %}
+                {% for receita in proximos_vencimentos %}
+                <div class="vencimento-item">
+                    <div class="vencimento-info">
+                        <h6>{{ receita.cliente.nome }}</h6>
+                        <p>{{ receita.descricao }}</p>
+                    </div>
+                    <div class="vencimento-valor">
+                        <div class="valor">R$ {{ receita.valor_total|floatformat:2 }}</div>
+                        <div class="data">{{ receita.data_vencimento|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <p>Nenhum vencimento próximo</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Top Clientes -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <h3 class="info-card-title">
+                <i class="fas fa-trophy"></i>
+                Top Clientes por Receita
+            </h3>
+        </div>
+        <div class="info-card-body">
+            {% if top_clientes %}
+                {% for cliente in top_clientes %}
+                <div class="vencimento-item">
+                    <div class="vencimento-info">
+                        <h6>{{ cliente.nome }}</h6>
+                        <p>{{ cliente.cpf_cnpj }}</p>
+                    </div>
+                    <div class="vencimento-valor">
+                        <div class="valor">R$ {{ cliente.total_receitas|floatformat:2 }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <p>Nenhum dado disponível</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Cliente -->
+<div class="modal fade" id="clienteModal" tabindex="-1" aria-labelledby="clienteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clienteModalLabel"><i class="fas fa-user-plus me-2"></i>Novo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="clienteForm" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Nome Completo *</label>
+                                <input type="text" name="nome" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">CPF/CNPJ *</label>
+                                <input type="text" name="cpf_cnpj" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">E-mail</label>
+                                <input type="email" name="email" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Telefone</label>
+                                <input type="text" name="telefone" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nome da Mãe</label>
+                        <input type="text" name="nome_mae" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Endereço</label>
+                        <textarea name="endereco" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Cidade</label>
+                                <input type="text" name="cidade" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Estado</label>
+                                <input type="text" name="estado" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="ativo" class="form-check-input" id="cliente_ativo" checked>
+                        <label class="form-check-label" for="cliente_ativo">Cliente Ativo</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Salvar Cliente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Processo -->
+<div class="modal fade" id="processoModal" tabindex="-1" aria-labelledby="processoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="processoModalLabel"><i class="fas fa-folder-plus me-2"></i>Novo Processo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="processoForm" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Número do Processo *</label>
+                                <input type="text" name="numero" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select name="status" class="form-control">
+                                    <option value="ativo">Ativo</option>
+                                    <option value="suspenso">Suspenso</option>
+                                    <option value="arquivado">Arquivado</option>
+                                    <option value="finalizado">Finalizado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cliente *</label>
+                        <select name="cliente" class="form-control" required>
+                            <option value="">Selecione um cliente</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Título do Processo *</label>
+                        <input type="text" name="titulo" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea name="descricao" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Data de Início</label>
+                                <input type="date" name="data_inicio" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Valor da Causa</label>
+                                <input type="number" name="valor_causa" class="form-control" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tribunal</label>
+                                <input type="text" name="tribunal" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Vara</label>
+                                <input type="text" name="vara" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Salvar Processo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Agendar Audiência -->
+<div class="modal fade" id="audienciaModal" tabindex="-1" aria-labelledby="audienciaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="audienciaModalLabel"><i class="fas fa-calendar-plus me-2"></i>Agendar Audiência</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="audienciaForm" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Processo *</label>
+                        <select name="processo" class="form-control" required>
+                            <option value="">Selecione um processo</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Audiência *</label>
+                                <select name="tipo" class="form-control" required>
+                                    <option value="inicial">Inicial</option>
+                                    <option value="instrucao">Instrução</option>
+                                    <option value="julgamento">Julgamento</option>
+                                    <option value="conciliacao">Conciliação</option>
+                                    <option value="outras">Outras</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Data e Hora *</label>
+                                <input type="datetime-local" name="data_hora" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Local da Audiência</label>
+                        <input type="text" name="local" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observações</label>
+                        <textarea name="observacoes" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Agendar Audiência
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Lançar Receita -->
+<div class="modal fade" id="receitaModal" tabindex="-1" aria-labelledby="receitaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="receitaModalLabel"><i class="fas fa-receipt me-2"></i>Lançar Receita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="receitaForm" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Descrição *</label>
+                                <input type="text" name="descricao" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Valor Total *</label>
+                                <input type="number" name="valor_total" class="form-control" step="0.01" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Cliente *</label>
+                                <select name="cliente" class="form-control" required>
+                                    <option value="">Selecione um cliente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Processo</label>
+                                <select name="processo" class="form-control">
+                                    <option value="">Selecione um processo (opcional)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Data de Emissão</label>
+                                <input type="date" name="data_emissao" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Data de Vencimento</label>
+                                <input type="date" name="data_vencimento" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Forma de Pagamento</label>
+                                <select name="forma_pagamento" class="form-control">
+                                    <option value="">Selecione</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observações</label>
+                        <textarea name="observacoes" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="pago" class="form-check-input" id="receita_paga">
+                        <label class="form-check-label" for="receita_paga">Marcar como pago</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Salvar Receita
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Animações nos cards de estatísticas
-    document.addEventListener('DOMContentLoaded', function() {
-        const statCards = document.querySelectorAll('.stat-card');
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '0';
-                    entry.target.style.transform = 'translateY(20px)';
-                    
-                    setTimeout(() => {
-                        entry.target.style.transition = 'all 0.6s ease';
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }, Math.random() * 200);
+document.addEventListener('DOMContentLoaded', function() {
+    // Dados dos gráficos
+    const receitas_despesas_data = {{ receitas_despesas_meses|safe }};
+    const processos_status_data = {{ processos_por_status|safe }};
+
+    // Gráfico Financeiro
+    const ctxFinancial = document.getElementById('financialChart').getContext('2d');
+    new Chart(ctxFinancial, {
+        type: 'line',
+        data: {
+            labels: receitas_despesas_data.map(item => item.mes),
+            datasets: [{
+                label: 'Receitas',
+                data: receitas_despesas_data.map(item => item.receitas),
+                borderColor: '#38a169',
+                backgroundColor: 'rgba(56, 161, 105, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Despesas',
+                data: receitas_despesas_data.map(item => item.despesas),
+                borderColor: '#e53e3e',
+                backgroundColor: 'rgba(229, 62, 62, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
                 }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR');
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico de Status dos Processos
+    if (processos_status_data.length > 0) {
+        const ctxProcess = document.getElementById('processChart').getContext('2d');
+        new Chart(ctxProcess, {
+            type: 'doughnut',
+            data: {
+                labels: processos_status_data.map(item => {
+                    const statusMap = {
+                        'ativo': 'Ativo',
+                        'suspenso': 'Suspenso',
+                        'arquivado': 'Arquivado',
+                        'finalizado': 'Finalizado'
+                    };
+                    return statusMap[item.status] || item.status;
+                }),
+                datasets: [{
+                    data: processos_status_data.map(item => item.count),
+                    backgroundColor: [
+                        '#3182ce',
+                        '#d69e2e',
+                        '#718096',
+                        '#38a169'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    }
+
+    // Animações de entrada
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '0';
+                entry.target.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    entry.target.style.transition = 'all 0.6s ease';
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, Math.random() * 200);
+            }
+        });
+    });
+    
+    document.querySelectorAll('.stat-card, .info-card').forEach(card => {
+        observer.observe(card);
+    });
+
+    // Modal form handlers
+    initializeModalForms();
+    
+    // Load data for select fields
+    loadSelectData();
+    
+    // Auto-refresh (opcional)
+    setInterval(() => {
+        console.log('Verificando atualizações...');
+        // Aqui você pode implementar atualizações em tempo real via AJAX
+    }, 60000); // A cada minuto
+});
+
+// Initialize modal forms with AJAX handling
+function initializeModalForms() {
+    // Cliente form handler
+    $('#clienteForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        $.ajax({
+            url: '{% url "dashboard:client_create" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#clienteModal').modal('hide');
+                    $('#clienteForm')[0].reset();
+                    showToast('success', response.message);
+                    // Refresh page after 1 second to show updated data
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showFormErrors('clienteForm', response.errors);
+                }
+            },
+            error: function(xhr, status, error) {
+                showToast('error', 'Erro ao salvar cliente. Tente novamente.');
+            }
+        });
+    });
+    
+    // Processo form handler
+    $('#processoForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        $.ajax({
+            url: '{% url "dashboard:processo_create" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#processoModal').modal('hide');
+                    $('#processoForm')[0].reset();
+                    showToast('success', response.message);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showFormErrors('processoForm', response.errors);
+                }
+            },
+            error: function(xhr, status, error) {
+                showToast('error', 'Erro ao salvar processo. Tente novamente.');
+            }
+        });
+    });
+    
+    // Audiencia form handler
+    $('#audienciaForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        $.ajax({
+            url: '{% url "dashboard:audiencia_create" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#audienciaModal').modal('hide');
+                    $('#audienciaForm')[0].reset();
+                    showToast('success', response.message);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showFormErrors('audienciaForm', response.errors);
+                }
+            },
+            error: function(xhr, status, error) {
+                showToast('error', 'Erro ao agendar audiência. Tente novamente.');
+            }
+        });
+    });
+    
+    // Receita form handler
+    $('#receitaForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        $.ajax({
+            url: '{% url "dashboard:receita_create" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#receitaModal').modal('hide');
+                    $('#receitaForm')[0].reset();
+                    showToast('success', response.message);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showFormErrors('receitaForm', response.errors);
+                }
+            },
+            error: function(xhr, status, error) {
+                showToast('error', 'Erro ao lançar receita. Tente novamente.');
+            }
+        });
+    });
+}
+
+// Load data for select fields
+function loadSelectData() {
+    // Load clientes
+    $.get('{% url "dashboard:get_clientes_ajax" %}', function(data) {
+        const clienteSelects = $('select[name="cliente"]');
+        clienteSelects.each(function() {
+            const $select = $(this);
+            const defaultOption = $select.find('option[value=""]').text();
+            $select.empty().append(`<option value="">${defaultOption}</option>`);
+            
+            data.forEach(function(cliente) {
+                $select.append(`<option value="${cliente.id}">${cliente.nome}</option>`);
             });
         });
-        
-        statCards.forEach(card => observer.observe(card));
-        
-        // Atualização em tempo real (simulada)
-        setInterval(() => {
-            // Aqui você pode fazer chamadas AJAX para atualizar dados
-            console.log('Atualizando dados do dashboard...');
-        }, 30000); // A cada 30 segundos
     });
+    
+    // Load processos
+    $.get('{% url "dashboard:get_processos_ajax" %}', function(data) {
+        const processoSelects = $('select[name="processo"]');
+        processoSelects.each(function() {
+            const $select = $(this);
+            const defaultOption = $select.find('option[value=""]').text();
+            $select.empty().append(`<option value="">${defaultOption}</option>`);
+            
+            data.forEach(function(processo) {
+                const title = `${processo.numero} - ${processo.titulo} (${processo.cliente__nome})`;
+                $select.append(`<option value="${processo.id}">${title}</option>`);
+            });
+        });
+    });
+    
+    // Load formas de pagamento
+    $.get('{% url "dashboard:get_formas_pagamento_ajax" %}', function(data) {
+        const formaSelects = $('select[name="forma_pagamento"]');
+        formaSelects.each(function() {
+            const $select = $(this);
+            const defaultOption = $select.find('option[value=""]').text();
+            $select.empty().append(`<option value="">${defaultOption}</option>`);
+            
+            data.forEach(function(forma) {
+                $select.append(`<option value="${forma.id}">${forma.nome}</option>`);
+            });
+        });
+    });
+}
+
+// Show form errors
+function showFormErrors(formId, errors) {
+    // Clear previous errors
+    $(`#${formId} .is-invalid`).removeClass('is-invalid');
+    $(`#${formId} .invalid-feedback`).remove();
+    
+    // Show new errors
+    Object.keys(errors).forEach(function(field) {
+        const $field = $(`#${formId} [name="${field}"]`);
+        if ($field.length) {
+            $field.addClass('is-invalid');
+            const errorText = Array.isArray(errors[field]) ? errors[field].join(', ') : errors[field];
+            $field.after(`<div class="invalid-feedback">${errorText}</div>`);
+        }
+    });
+}
+
+// Show toast notification
+function showToast(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    $('body').append(alertHtml);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        $('.alert').fadeOut();
+    }, 5000);
+}
 </script>
 {% endblock %}

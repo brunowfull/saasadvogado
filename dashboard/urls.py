@@ -14,6 +14,8 @@ urlpatterns = [
     path('clients/<int:client_pk>/financial/edit_payment/<int:payment_pk>/', views.payment_edit_view, name='payment_edit'),
     path('clients/<int:client_pk>/financial/delete_payment/<int:payment_pk>/', views.payment_delete_view, name='payment_delete'),
     path('clients/<int:pk>/activate_area/', views.activate_client_area, name='client_activate_area'),
+    path('clients/<int:pk>/processes/', views.client_processes, name='client_processes'),
+    path('get_payment_options/', views.get_payment_options, name='get_payment_options'),
 
     # Lawyer URLs
     path('lawyers/', views.advogado_list, name='lawyers'),
@@ -48,9 +50,25 @@ urlpatterns = [
     path('processos/create/', views.processo_create, name='processo_create'),
     path('processos/<int:pk>/edit/', views.processo_update, name='processo_update'),
     path('processos/<int:pk>/delete/', views.processo_delete, name='processo_delete'),
+    path('processos/<int:pk>/', views.processo_detail, name='processo_detail'),
 
     path('calendar_events/', views.calendar_events, name='calendar_events'),
-    path('get_dashboard_data/', views.get_dashboard_data, name='get_dashboard_data'),
+    
+    # AJAX Modal endpoints
+    path('ajax/cliente/create/', views.cliente_create, name='ajax_cliente_create'),
+    path('ajax/processo/create/', views.processo_create, name='ajax_processo_create'),
+    path('ajax/audiencia/create/', views.audiencia_create, name='ajax_audiencia_create'),
+    path('ajax/receita/create/', views.receita_create, name='ajax_receita_create'),
+    path('ajax/get_clientes/', views.get_clientes_ajax, name='get_clientes_ajax'),
+    path('ajax/get_processos/', views.get_processos_ajax, name='get_processos_ajax'),
+    path('ajax/get_formas_pagamento/', views.get_formas_pagamento_ajax, name='get_formas_pagamento_ajax'),
+    
+    # Client management AJAX endpoints
+    path('client/<int:pk>/edit/', views.client_edit, name='client_edit'),
+    path('client/<int:pk>/financial/', views.client_financial, name='client_financial'),
+    path('client/<int:pk>/activate-area/', views.activate_client_area, name='activate_client_area'),
+    path('receita/<int:receita_pk>/add-payment/', views.add_partial_payment, name='add_partial_payment'),
+    
     
     # TipoReceita URLs
     path('tipo-receita/', views.tipo_receita_list, name='tipo_receita_list'),

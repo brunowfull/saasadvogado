@@ -53,6 +53,7 @@ class TipoDespesa(models.Model):
 
 class FormaPagamento(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome")
+    ativo = models.BooleanField(default=True, verbose_name="Ativo")
     data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
     
     class Meta:
@@ -76,6 +77,7 @@ class PrazoPagamento(models.Model):
 
 class Banco(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome")
+    ativo = models.BooleanField(default=True, verbose_name="Ativo")
     data_cadastro = models.DateTimeField(default=timezone.now, verbose_name="Data de Cadastro")
     
     class Meta:
@@ -262,11 +264,13 @@ class Despesa(models.Model):
 class AtividadeRecente(models.Model):
     TIPO_CHOICES = [
         ('cliente_cadastrado', 'Cliente Cadastrado'),
+        ('cliente_desativado', 'Cliente Desativado'),
         ('audiencia_agendada', 'Audiência Agendada'),
         ('documento_gerado', 'Documento Gerado'),
         ('recebimento_confirmado', 'Recebimento Confirmado'),
         ('tarefa_criada', 'Tarefa Criada'),
         ('processo_criado', 'Processo Criado'),
+        ('processo_atualizado', 'Processo Atualizado'),
         ('publicacao_recebida', 'Publicação Recebida'),
     ]
     
